@@ -160,7 +160,10 @@ function move_bullets()
   			del (actors, actor)
   			pl2_damage = pl2_damage + 1  	
 				if (pl2_damage == game_over_damage) then 
-          game_over = true
+					pl2_speed_x = 0
+          pl2_speed_y = pl_speed
+          pl2.spr = 43
+          pl2_flame = make_actor(pl2.x ,pl2.y - 1 ,27)
         end		   
 			end
 	  end
@@ -221,16 +224,16 @@ function control_players()
 	elseif (btn(4,1) and not pl2_is_pressed) then
 		pl2_is_pressed = true
 		if (pl2.spr == pl2_up) then
-			make_actor(pl2.x,pl2.y-.6,bullet_spr,"up")
+			make_actor(pl2.x,pl2.y-.6,bullet_spr, "up")
  		end	    	     	    		 
 		if (pl2.spr == pl2_down) then
-			make_actor(pl2.x,pl2.y+.6,bullet_spr,"down")
+			make_actor(pl2.x,pl2.y+.6, bullet_spr, "down")
  		end	    	     	    		 
 		if (pl2.spr == pl2_right) then
-			make_actor(pl2.x+.6,pl2.y,bullet_spr,"right")
+			make_actor(pl2.x+.6, pl2.y, bullet_spr, "right")
  		end	    	     	    		 
 		if (pl2.spr == pl2_left) then
-			make_actor(pl2.x-.6,pl2.y,bullet_spr,"left")
+			make_actor(pl2.x-.6, pl2.y, bullet_spr, "left")
  		end	    	     	    		 
 	end
 	if  (not btn(4)) then
@@ -248,6 +251,9 @@ function move_players()
     pl2.y = pl2.y + pl2_speed_y
     if (pl1_flame) then
       pl1_flame.y = pl1_flame.y + pl1_speed_y
+		end
+		if (pl2_flame) then
+      pl2_flame.y = pl2_flame.y + pl2_speed_y
     end
 end 
 
