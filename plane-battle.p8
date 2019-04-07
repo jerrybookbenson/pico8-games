@@ -12,13 +12,14 @@ function _init()
 	pl1_left = 32
 	pl1_up = 16
 	pl1_down = 48
-  pl1_flame_spr = 43
-  
+	pl1_flame_spr = 43
+	
 	pl2_right = 17
 	pl2_left = 49
   pl2_up = 33
   pl2_down = 2
-     
+	pl2_flame_spr = 42
+  
   flame_tail_spr = 27 
 
 	actors = {} --all actors in world
@@ -153,7 +154,10 @@ function move_bullets()
   			del (actors, actor)
   			pl2_damage = pl2_damage + 1  	
 				if (pl2_damage == game_over_damage) then 
-          game_over = true
+          pl2_speed_x = 0
+          pl2_speed_y = pl_speed
+          pl2.spr = pl2_flame_spr
+          pl2_flame = make_actor(pl2.x ,pl2.y - 1, flame_tail_spr)
         end		   
 			end
 	  end
@@ -195,19 +199,19 @@ function control_players()
  		end	    	     	    		 
 	end
     -- now player 2
-  if (btn(0,1) and pl2.x > min_x ) then 
+  if (btn(0,1) and pl2.x > min_x and pl2.spr != pl2_flame_spr) then 
 		pl2_speed_y = 0 	 
  	  pl2_speed_x = -pl_speed
 		pl2.spr = pl2_left  
-  elseif (btn(1,1) and pl2.x < max_x )  then
+  elseif (btn(1,1) and pl2.x < max_x and pl2.spr != pl2_flame_spr)  then
   	pl2_speed_y = 0
    	pl2_speed_x = pl_speed
   	pl2.spr = pl2_right  
-	elseif (btn(2,1) and pl2.y > min_y )  then
+	elseif (btn(2,1) and pl2.y > min_y and pl2.spr != pl2_flame_spr)  then
  		pl2_speed_x = 0
    	pl2_speed_y = -pl_speed
   	pl2.spr = pl2_up  
-	elseif (btn(3,1)) then
+	elseif (btn(3,1) and pl2.spr != pl2_flame_spr) then
    	pl2_speed_x = 0
    	pl2_speed_y = pl_speed
   	pl2.spr = pl2_down
@@ -241,6 +245,9 @@ function move_players()
     pl2.y = pl2.y + pl2_speed_y
     if (pl1_flame) then
       pl1_flame.y = pl1_flame.y + pl1_speed_y
+		end
+		if (pl2_flame) then
+      pl2_flame.y = pl2_flame.y + pl2_speed_y
     end
 end 
 
