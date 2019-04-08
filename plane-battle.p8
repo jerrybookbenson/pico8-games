@@ -107,9 +107,18 @@ function _draw()
   print ("green damage:"..pl1_damage.."    grey damage:"..pl2_damage, 0,120, 9)	 
   if (game_over) then
   	if (pl2_damage == game_over_damage) then
-  		print ("green won!!!",50, 10, 8)
+      print ("green won!!!",50, 10, 8)
+      make_actor (pl2.x, pl2.y + .2, 57 )
+      make_actor (pl2.x + 1, pl2.y + .2, 58)
+      del (actors, pl2)
+      del (actors, pl2_flame)
+      
     else  
-			print ("grey won!!!", 50, 10, 8)
+      print ("grey won!!!", 50, 10, 8)
+      make_actor (pl1.x, pl1.y + .2, 9 )
+      make_actor (pl1.x + 1, pl1.y + .2, 10)
+      del (actors, pl1)
+      del (actors, pl1_flame)
     end
   	print ("press 'a' button to play again", 2, 20, 8)
     if (btn (5)) then
