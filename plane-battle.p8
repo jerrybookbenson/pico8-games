@@ -24,7 +24,7 @@ function _init()
 
 	actors = {} --all actors in world
   game_over = false
-  game_over_damage = 30
+  game_over_damage = 2 
   middle = 8 
   min_x = .5
   max_x = 15.5
