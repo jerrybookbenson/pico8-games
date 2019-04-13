@@ -3,46 +3,70 @@ version 16
 __lua__
 
 function _init() 
+  actors={}
   mid_screen_x = 8
   mid_screen_y = 8
-  plyr_spr = 1
+  plyr_spr = 0
   plyr = make_actor ( mid_screen_x,mid_screen_y, plyr_spr)
 
 end 
 
-  function make_actor(x, y, sp, d)
-    a={}
-    a.x = x
-    a.y = y
-    a.frame = 0
-    a.spr = sp
-    a.direction = d
-    add(actors,a)
-    return a 
-  end
-
-
-
 function _update ()
- move_actor ()
-check_boundries ()
+  move_plyr ()
+  
+end
 
+function make_actor(x, y, sp, d)
+  a  = 10
+  a={}
+  a.x = x
+  a.y = y
+  a.frame = 0
+  a.spr = sp
+  a.direction = d
+  add(actors,a)
+  return a 
+end
+
+function draw_actor(a)
+  local sx = (a.x * 8) - 4 
+  local sy = (a.y * 8) - 4  
+  spr(a.spr + a.frame, sx, sy)
 end
 
 function _draw ()
+  print (a) a == 10
+  cls() a == 10
+  map(0,0,0,0,16,16) a === 10
+  draw_actor(5)  a === 10
 end
 
-function move_actor ()
+function move_plyr ()
+
+end
+
+
+function _init () {
+  n = 15               n is equal to 15 here, val is equal to nil here
+  myfunc()
+}
+
+function plus1 (n) 
+   return n + 1
+end
+
+function myfunc ()
+  plus1 (12)           n is equal to 15 here, val is nil here
+  val = plus1 (20)     n is equal to 15 here, val is equal to 21 here
+  val = plus1 (30)     n is equal to 15 here, val is equal to 31 here
+  n = 17               n is equal to 17 here, val is equal to 31 here
+  val = plus1 (40)     n is equal to 17 here, val is equal to 41 here
+  n = plus1 (50)       n is equal to 51 here, val is equal to 41 here
+end
 
 
 
-
-
-
-
-
-
-
+ 
 
 
 __gfx__
