@@ -33,18 +33,20 @@ function _init()
   pl1_damage = 0
   pl2_damage = 0
 	bullet_spr = 3 
+	corner_rounding = 1
+	pl1_direction = "left"
+	pl2_direction = "left"
+	pl1_original_direction = "left"
+	pl2_original_direction = "left"
 		  
    
   pl1_spr1 = 32
   pl2_spr1 = 17
 		
 	pl_speed = .1
-  pl1_speed_y = 0
-  pl2_speed_y = 0
-  pl1_speed_x =  -pl_speed
-  pl2_speed_x = pl_speed
- 
 	bullet_speed = pl_speed * 3 
+
+	-- don't allow user to hold down fire button
   pl1_is_pressed = false
   pl2_is_pressed = false
   pl1 = make_actor(max_x - 1, ground_y-1,pl1_spr1)
@@ -149,8 +151,6 @@ function move_bullets()
   			del (actors, actor)
   			pl1_damage = pl1_damage + 1		  	
         if (pl1_damage == game_over_damage) then 
-          pl1_speed_x = 0
-          pl1_speed_y = pl_speed
           pl1.spr = pl1_flame_spr
           pl1_flame = make_actor(pl1.x ,pl1.y - 1, flame_tail_spr)
          
@@ -163,8 +163,6 @@ function move_bullets()
   			del (actors, actor)
   			pl2_damage = pl2_damage + 1  	
 				if (pl2_damage == game_over_damage) then 
-          pl2_speed_x = 0
-          pl2_speed_y = pl_speed
           pl2.spr = pl2_flame_spr
           pl2_flame = make_actor(pl2.x ,pl2.y - 1, flame_tail_spr)
         end		   
@@ -176,22 +174,13 @@ end
 function control_players()
   -- left
   if (btn(0) and pl1.x > min_x and pl1.spr != pl1_flame_spr) then 
-		pl1_speed_y = 0 	 
- 	  pl1_speed_x = -pl_speed
-    pl1.spr = pl1_left  
-  -- right
+		pl1.spr = pl1_left
   elseif (btn(1) and pl1.x < max_x  and pl1.spr != pl1_flame_spr )  then
-  	pl1_speed_y = 0
-   	pl1_speed_x = pl_speed
-  	pl1.spr = pl1_right  
+  	pl1.spr = pl1_right
 	elseif (btn(2) and pl1.y > min_y  and pl1.spr != pl1_flame_spr)  then
- 		pl1_speed_x = 0
-   	pl1_speed_y = -pl_speed
-  	pl1.spr = pl1_up  
+		pl1.spr = pl1_up
 	elseif (btn(3) and pl1.spr != pl1_flame_spr) then
-   	pl1_speed_x = 0
-   	pl1_speed_y = pl_speed
-  	pl1.spr = pl1_down
+		pl1.spr = pl1_left
 	elseif (btn(4) and not pl1_is_pressed and pl1.spr != pl1_flame_spr) then
 		pl1_is_pressed = true
 		if (pl1.spr == pl1_up) then
@@ -209,21 +198,13 @@ function control_players()
 	end
     -- now player 2
   if (btn(0,1) and pl2.x > min_x and pl2.spr != pl2_flame_spr) then 
-		pl2_speed_y = 0 	 
- 	  pl2_speed_x = -pl_speed
-		pl2.spr = pl2_left  
+		pl2.spr = pl2_left
   elseif (btn(1,1) and pl2.x < max_x and pl2.spr != pl2_flame_spr)  then
-  	pl2_speed_y = 0
-   	pl2_speed_x = pl_speed
-  	pl2.spr = pl2_right  
+  	pl2.spr = pl2_right
 	elseif (btn(2,1) and pl2.y > min_y and pl2.spr != pl2_flame_spr)  then
- 		pl2_speed_x = 0
-   	pl2_speed_y = -pl_speed
-  	pl2.spr = pl2_up  
+		pl2.spr = pl2_up
 	elseif (btn(3,1) and pl2.spr != pl2_flame_spr) then
-   	pl2_speed_x = 0
-   	pl2_speed_y = pl_speed
-  	pl2.spr = pl2_down
+		pl2.spr = pl2_down
 	elseif (btn(4,1) and not pl2_is_pressed) then
 		pl2_is_pressed = true
 		if (pl2.spr == pl2_up) then
@@ -247,17 +228,31 @@ function control_players()
 	end   
 end
 
-function move_players()   
-		pl1.x = pl1.x + pl1_speed_x
-		pl2.x = pl2.x + pl2_speed_x
-		pl1.y = pl1.y + pl1_speed_y
-    pl2.y = pl2.y + pl2_speed_y
-    if (pl1_flame) then
-      pl1_flame.y = pl1_flame.y + pl1_speed_y
+function move_players()  
+	if (pl1.spr == pl1_right) then 
+		pl1.x = pl1.x + pl_speed
+	elseif (pl1.spr == pl1_left) then 
+		pl1.x = pl1.x - pl_speed
+	elseif (pl1.spr == pl1_up) then 
+		pl1.y = pl1.y - pl_speed
+	elseif (pl1.spr == pl1_down or pl1.spr == pl1_flame_spr) then 
+		pl1.y = pl1.y + pl_speed
+		if (pl1_flame) then
+			pl1_flame.y = pl1_flame.y + pl_speed
 		end
+	end	
+	if (pl2.spr == pl2_right) then 
+		pl2.x = pl2.x + pl_speed
+	elseif (pl2.spr == pl2_left) then 
+		pl2.x = pl2.x - pl_speed
+	elseif (pl2.spr == pl2_up) then 
+		pl2.y = pl2.y - pl_speed
+	elseif (pl2.spr == pl2_down or pl2.spr == pl2_flame_spr) then 
+		pl2.y = pl2.y + pl_speed
 		if (pl2_flame) then
-      pl2_flame.y = pl2_flame.y + pl2_speed_y
-    end
+			pl2_flame.y = pl2_flame.y + pl_speed
+		end
+	end	
 end 
 
 
