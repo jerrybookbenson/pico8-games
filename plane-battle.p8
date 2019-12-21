@@ -38,12 +38,19 @@ function _init()
  	min_y = .5
   max_y = 14
 	bullet_spr = 3 
+	corner_rounding = 1
+	pl1_direction = "left"
+	pl2_direction = "left"
+	pl1_original_direction = "left"
+	pl2_original_direction = "left"
 		  
   pl_speed = .1
   
   
  
 	bullet_speed = pl_speed * 3 
+
+	-- don't allow user to hold down fire button
   pl1_is_pressed = false
   pl2_is_pressed = false
   pl1 = make_actor(max_x - 1,7, pl1_w, "w",  0, -pl_speed)
