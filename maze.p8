@@ -6,20 +6,22 @@ __lua__
 --this is a cool & fun game
 
 function _init()
-  draw_maze() 
-  maze = {}
+  cls()
+  map(0,0,0,0,16,16)
+  draw_maze()
   pl = make_actor(0.5,8,1)
-  actors = {}
+  draw_actor(pl)
+  actors = {} 
 end
 
-function _update()''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+function _update()
   move_player()
 end
 
 function _draw()
-  cls()
-  map(0,0,0,0,16,16)
-  foreach(actors,draw_actor)
+  
+  
+  
 end
 
 function make_actor(x,y,spr)
@@ -51,10 +53,36 @@ function draw_maze()
 end
 
 function move_player()
+  --right
   if (btn(1)) then
-     pl.y = pl.y + 1
+   maze.x = pl.x
+   maze.y = pl.y  
+    draw_actor(maze)
+     pl.x = pl.x + .1
      draw_actor(pl)
   end
+  --left
+  if (btn(0)) then
+    maze.x = pl.x
+    maze.y = pl.y  
+     draw_actor(maze)
+      pl.x = pl.x - .1
+      draw_actor(pl)
+   end
+   if (btn(3)) then
+    maze.x = pl.x 
+    maze.y = pl.y 
+     draw_actor(maze)
+      pl.y = pl.y + .1
+      draw_actor(pl)
+   end
+   if (btn(2)) then
+    maze.x = pl.x 
+    maze.y = pl.y 
+     draw_actor(maze)
+      pl.y = pl.y -.1
+      draw_actor(pl)
+   end
 end  
 __gfx__
 77777777000c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
