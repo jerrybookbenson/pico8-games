@@ -31,13 +31,14 @@ function _init()
   flame_tail_spr = 27 
 	actors = {} --all actors in world
   game_over = false
-  game_over_damage = 2 
+  game_over_damage = 5 
   middle = 8 
   min_x = .5
   max_x = 15.5
  	min_y = .5
   max_y = 14
-	bullet_spr_horiz = 3 
+  bullet_spr_horiz = 3 
+  bullet_spr_virt = 4
 	corner_rounding = 1
 	pl1_direction = "left"
 	pl2_direction = "left"
@@ -55,7 +56,8 @@ function _init()
   pl2_is_pressed = false
   pl1 = make_actor(max_x - 1,7, pl1_w, "w",  0, -pl_speed)
   pl2 = make_actor(min_x + 1,7, pl2_e, "e",  0,  pl_speed)
-
+  pl1_flame = nil
+  pl2_flame = nil
 end
   
 
@@ -123,32 +125,20 @@ function _draw()
   if (game_over) then
   	if (pl2.damage == game_over_damage) then
       print ("green won!!!",50, 10, 8)
-      -- if (first_time = true) then 
-      --  if (pl2_rubble_1.spr = 57) then
-      --    pl2_rubble_1 (pl2.x, pl2.y + .2, 59 )
-      --    pl2_rubble_2 (pl2.x + 1, pl2.y + .2, 60)
-      --    del (actors, pl2)
-      --    del (actors, pl2_flame)
-      --  else pl2_rubble_1_1 (pl2.x, pl2.y + .2, 57 )
-      --    pl2_rubble_1_2 (pl2.x + 1, pl2.y + .2, 58)
-      --   end
-      -- end
-      --first_time = false
-      make_actor (pl2.x, pl2.y + .2, 57 )
-      make_actor (pl2.x + 1, pl2.y + .2, 58)
+    
+     
       del (actors, pl2)
       del (actors, pl2_flame)
       
     else 
       print ("grey won!!!", 50, 10, 8)
-      make_actor (pl1.x, pl1.y + .2, 9 )
-      make_actor (pl1.x + 1, pl1.y + .2, 10)
+     
       del (actors, pl1)
       del (actors, pl1_flame)
     end
   	print ("press 'a' button to play again", 2, 20, 8) 
     if (btn (3) or btn (3,1)) then 
-      _init()  
+      _init() 
   	end	
 	end
 end
@@ -156,7 +146,7 @@ end
 function move_bullets() 
 
 	for actor in all(actors) do
-		if (actor.spr == bullet_spr) then
+		if (actor.spr == bullet_spr_horiz or actor.spr == bullet_spr_virt) then
 			if (actor.direction == "n") then
 			  actor.y = actor.y - bullet_speed 						
 			end
@@ -341,28 +331,28 @@ function control_players(pl, pl_flame_spr, pl_n, pl_s, pl_w, pl_e, pl_nw, pl_sw,
 	elseif (btn(4,pl_index) and not pl.is_pressed and pl.spr != pl_flame_spr) then
 		pl.is_pressed = true
     if (pl.spr == pl_nw) then
-			make_actor(pl.x-.6,pl.y-.6,bullet_spr,"nw")
+			make_actor(pl.x-.6,pl.y-.6,bullet_spr_horiz,"nw")
     end
     if (pl.spr == pl_sw) then
-			make_actor(pl.x-.6,pl.y+.6,bullet_spr,"sw")
+			make_actor(pl.x-.6,pl.y+.6,bullet_spr_horiz,"sw")
     end
     if (pl.spr == pl_se) then
-			make_actor(pl.x+.6,pl.y+.6,bullet_spr,"se")
+			make_actor(pl.x+.6,pl.y+.6,bullet_spr_horiz,"se")
     end
     if (pl.spr == pl_ne) then
-			make_actor(pl.x+.6,pl.y-.6,bullet_spr,"ne")
+			make_actor(pl.x+.6,pl.y-.6,bullet_spr_horiz,"ne")
     end      
     if (pl.spr == pl_n) then
-			make_actor(pl.x,pl.y-.6,bullet_spr,"n")
+			make_actor(pl.x,pl.y-.6,bullet_spr_virt,"n")
     end	
 		if (pl.spr == pl_s) then
-			make_actor(pl.x,pl.y+.6,bullet_spr,"s")
+			make_actor(pl.x,pl.y+.6,bullet_spr_virt,"s")
  		end	    	     	    		 
 		if (pl.spr == pl_e) then
-			make_actor(pl.x+.6,pl.y,bullet_spr,"e")
+			make_actor(pl.x+.6,pl.y,bullet_spr_horiz,"e")
  		end	    	     	    		 
 		if (pl.spr == pl_w) then
-      make_actor(pl.x-.6,pl.y,bullet_spr,"w")
+      make_actor(pl.x-.6,pl.y,bullet_spr_horiz,"w")
      end
   end	
   
@@ -376,8 +366,12 @@ function move_player(pl,  pl_flame)
 		pl.y = pl.y + pl.speed_y
     if (pl_flame) then
       pl_flame.y = pl_flame.y + pl.speed_y
-		end
-end 
+      if (pl_flame.y > max_y) then
+        game_over = true  
+      end
+    end
+    
+end
 
 
 __gfx__
