@@ -115,6 +115,7 @@ function _update()
     move_player (pl1, pl1_flame, pl1_flame_spr)
     move_player (pl2, pl2_flame, pl2_flame_spr)
     move_bullets ()
+    accelerate()
 	end
 end
 
@@ -220,7 +221,7 @@ function switch(pl)
   elseif (pl.spr == pl2_e) then
     pl.spr = pl2_e_h 
   elseif (pl.spr == pl2_se) then
-    pl.spr = pl12_se_h 
+    pl.spr = pl2_se_h 
   elseif (pl.spr == pl2_s) then
     pl.spr = pl2_s_h 
   elseif (pl.spr == pl2_sw) then
@@ -260,7 +261,7 @@ function switch_back(pl)
   elseif (pl.spr == pl2_e_h) then
     pl.spr = pl2_e 
   elseif (pl.spr == pl2_se_h) then
-    pl.spr = pl12_se 
+    pl.spr = pl2_se 
   elseif (pl.spr == pl2_s_h) then
     pl.spr = pl2_s
   elseif (pl.spr == pl2_sw_h) then
@@ -512,8 +513,15 @@ function move_player(pl,  pl_flame, pl_flame_spr)
       if (pl_flame.y > max_y) then
         game_over = true  
       end
-    end
-    
+    end 
+end
+
+function accelerate ()
+  if (btn(2)) then
+    pl_speed = .3   
+  else
+    pl_speed = .1
+  end
 end
 
 
