@@ -67,8 +67,9 @@ function _init()
 	pl1_original_direction = "left"
 	pl2_original_direction = "left"
 		  
-  pl_speed = .1
-  
+  speed = .1
+  fast_speed = .15
+
   pl1_rubble1 = {}
   pl1_rubble2 = {}
   pl1_rubble_spr1 = 8
@@ -79,13 +80,13 @@ function _init()
   pl2_rubble_spr2 = 57
   
  
-	bullet_speed = pl_speed * 3 
+	bullet_speed = speed * 3 
 
 	-- don't allow user to hold down fire button
   pl1_is_pressed = false
   pl2_is_pressed = false
-  pl1 = make_actor(max_x - 1,7, pl1_w, "w",  0, -pl_speed)
-  pl2 = make_actor(min_x + 1,7, pl2_e, "e",  0,  pl_speed)
+  pl1 = make_actor(max_x - 1,7, pl1_w, "w",  0, -speed)
+  pl2 = make_actor(min_x + 1,7, pl2_e, "e",  0,  speed)
   pl1_flame = nil
   pl2_flame = nil
 end
@@ -334,7 +335,7 @@ function move_bullets()
           if (pl1.damage == game_over_damage) then
             is_crashing = true;
             pl1.speed_x = 0
-            pl1.speed_y = pl_speed
+            pl1.speed_y = speed
             pl1.spr = pl1_flame_spr
             pl1_flame = make_actor(pl1.x ,pl1.y - 1, flame_tail_spr)
           end
@@ -351,7 +352,7 @@ function move_bullets()
           if (pl2.damage == game_over_damage) then
             is_crashing = true;
             pl2.speed_x = 0
-            pl2.speed_y = pl_speed
+            pl2.speed_y = speed
             pl2.spr = pl2_flame_spr
             pl2_flame = make_actor(pl2.x ,pl2.y - 1, flame_tail_spr)
           end
@@ -367,50 +368,34 @@ function control_players(pl, pl_flame_spr, pl_n, pl_s, pl_w, pl_e, pl_nw, pl_sw,
   if (btn(0,pl_index) and pl.x > min_x and not pl.is_pressed and pl.spr != pl_flame_spr ) then 
     pl.is_pressed = true
     if(pl.direction == "n") then 
-      pl.speed_y = -pl_speed
- 	    pl.speed_x = -pl_speed
       pl.spr = pl_nw 
       pl.direction = "nw" 
 
     elseif(pl.direction == "nw") then 
-      pl.speed_y =  0	 
- 	    pl.speed_x = -pl_speed
       pl.spr = pl_w 
       pl.direction = "w" 
     
     elseif(pl.direction == "w") then 
-      pl.speed_y =  pl_speed 	 
-      pl.speed_x = -pl_speed
       pl.spr = pl_sw 
       pl.direction = "sw" 
        
     elseif (pl.direction == "sw") then 
-      pl.speed_y =  pl_speed	 
-      pl.speed_x = 0
       pl.spr = pl_s 
       pl.direction = "s" 
     
     elseif (pl.direction == "s") then 
-      pl.speed_y =  pl_speed 	 
-      pl.speed_x = pl_speed
       pl.spr = pl_se 
       pl.direction = "se" 
        
     elseif(pl.direction == "se") then 
-      pl.speed_y = 0 	 
-      pl.speed_x = pl_speed
       pl.spr = pl_e 
       pl.direction = "e" 
       
     elseif(pl.direction == "e") then 
-      pl.speed_y = -pl_speed 	 
-      pl.speed_x = pl_speed
       pl.spr = pl_ne 
       pl.direction = "ne" 
 
     elseif(pl.direction == "ne") then 
-      pl.speed_y = -pl_speed	 
-      pl.speed_x = 0
       pl.spr = pl_n 
       pl.direction = "n" 
     end
@@ -418,50 +403,34 @@ function control_players(pl, pl_flame_spr, pl_n, pl_s, pl_w, pl_e, pl_nw, pl_sw,
   elseif (btn(1,pl_index) and pl.x < max_x  and not pl.is_pressed  and pl.spr != pl_flame_spr )  then
     pl.is_pressed = true
     if(pl.direction == "n") then 
-      pl.speed_y = -pl_speed
- 	    pl.speed_x =  pl_speed
       pl.spr = pl_ne
       pl.direction = "ne" 
 
     elseif(pl.direction == "ne") then 
-      pl.speed_y =  0	 
- 	    pl.speed_x =  pl_speed
       pl.spr = pl_e 
       pl.direction = "e" 
     
     elseif(pl.direction == "e") then 
-      pl.speed_y =  pl_speed 	 
-      pl.speed_x =  pl_speed
       pl.spr = pl_se 
       pl.direction = "se" 
        
     elseif (pl.direction == "se") then 
-      pl.speed_y =  pl_speed	 
-      pl.speed_x = 0
       pl.spr = pl_s 
       pl.direction = "s" 
     
     elseif (pl.direction == "s") then 
-      pl.speed_y =  pl_speed 	 
-      pl.speed_x = -pl_speed
       pl.spr = pl_sw
       pl.direction = "sw" 
        
     elseif(pl.direction == "sw") then 
-      pl.speed_y = 0 	 
-      pl.speed_x = -pl_speed
       pl.spr = pl_w 
       pl.direction = "w" 
       
     elseif(pl.direction == "w") then 
-      pl.speed_y = -pl_speed 	 
-      pl.speed_x = -pl_speed
       pl.spr = pl_nw 
       pl.direction = "nw" 
 
     elseif(pl.direction == "nw") then 
-      pl.speed_y = -pl_speed	 
-      pl.speed_x = 0
       pl.spr = pl_n 
       pl.direction = "n" 
     end
@@ -501,8 +470,70 @@ function control_players(pl, pl_flame_spr, pl_n, pl_s, pl_w, pl_e, pl_nw, pl_sw,
 end
 
 function move_player(pl,  pl_flame, pl_flame_spr)    
-		pl.x = pl.x + pl.speed_x
-		pl.y = pl.y + pl.speed_y
+  local pl_speed
+
+
+  if (btn(5)) then
+    pl_speed = fast_speed    
+  else
+    pl_speed = speed
+  end
+
+  if(pl.direction == "n") then 
+    pl.speed_y = -pl_speed
+    pl.speed_x = -pl_speed
+  
+
+  elseif(pl.direction == "nw") then 
+    pl.speed_y =  0	 
+    pl.speed_x = -pl_speed
+  
+  
+  elseif(pl.direction == "w") then 
+    pl.speed_y =  pl_speed 	 
+    pl.speed_x = -pl_speed
+   
+     
+  elseif (pl.direction == "sw") then 
+    pl.speed_y =  pl_speed	 
+    pl.speed_x = 0
+    
+  
+  elseif (pl.direction == "s") then 
+    pl.speed_y =  pl_speed 	 
+    pl.speed_x = pl_speed
+  
+     
+  elseif(pl.direction == "se") then 
+    pl.speed_y = 0 	 
+    pl.speed_x = pl_speed
+    
+    
+  elseif(pl.direction == "e") then 
+    pl.speed_y = -pl_speed 	 
+    pl.speed_x = pl_speed
+  
+
+  elseif(pl.direction == "ne") then 
+    pl.speed_y = -pl_speed	 
+    pl.speed_x = 0
+  
+  end 
+  
+  
+  
+  
+  
+  pl.x = pl.x + pl.speed_x
+    pl.y = pl.y + pl.speed_y
+    
+
+
+
+
+
+
+
     if (pl_flame) then
       pl_flame.y = pl_flame.y + pl.speed_y
       if (pl_flame.spr == flame_tail_spr1) then
@@ -516,13 +547,7 @@ function move_player(pl,  pl_flame, pl_flame_spr)
     end 
 end
 
-function accelerate ()
-  if (btn(2)) then
-    pl_speed = .3   
-  else
-    pl_speed = .1
-  end
-end
+
 
 
 __gfx__
