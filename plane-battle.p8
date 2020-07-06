@@ -467,14 +467,12 @@ end
 function move_player(pl,  pl_flame, pl_flame_spr)    
   local pl_speed
 
-  // accelerate if holding button
   if (btn(5)) then
     pl_speed = other_speed    
   else
     pl_speed = speed
   end
 
-  // move flaming player
   if (pl_flame) then
     pl.y += speed
     pl_flame.y += speed
@@ -486,7 +484,6 @@ function move_player(pl,  pl_flame, pl_flame_spr)
     if (pl_flame.y > max_y) then
       game_over = true  
     end
-  // move non-flaming player
   else
     if(pl.direction == "nw") then 
       pl.speed_y = -pl_speed
