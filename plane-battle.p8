@@ -113,8 +113,8 @@ function _update()
 		check_boundaries()
     control_players (pl1, pl1_flame_spr, pl1_n, pl1_s, pl1_w, pl1_e, pl1_nw, pl1_sw, pl1_se, pl1_ne,0)
     control_players (pl2, pl2_flame_spr, pl2_n, pl2_s, pl2_w, pl2_e, pl2_nw, pl2_sw, pl2_se, pl2_ne,1)
-    move_player (pl1, pl1_flame, pl1_flame_spr)
-    move_player (pl2, pl2_flame, pl2_flame_spr)
+    move_player (pl1, pl1_flame, pl1_flame_spr, 0)
+    move_player (pl2, pl2_flame, pl2_flame_spr, 1)
     move_bullets ()
 	end
 end
@@ -464,10 +464,10 @@ function control_players(pl, pl_flame_spr, pl_n, pl_s, pl_w, pl_e, pl_nw, pl_sw,
   end
 end
 
-function move_player(pl,  pl_flame, pl_flame_spr)    
+function move_player(pl,  pl_flame, pl_flame_spr, pl_index)    
   local pl_speed
 
-  if (btn(5)) then
+  if (btn(5, pl_index)) then
     pl_speed = other_speed    
   else
     pl_speed = speed
