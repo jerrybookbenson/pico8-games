@@ -67,8 +67,8 @@ function _init()
 	pl1_original_direction = "left"
 	pl2_original_direction = "left"
 		  
-  speed = .1
-  fast_speed = .15
+  speed = .12
+  other_speed = .06
 
   pl1_rubble1 = {}
   pl1_rubble2 = {}
@@ -116,7 +116,6 @@ function _update()
     move_player (pl1, pl1_flame, pl1_flame_spr)
     move_player (pl2, pl2_flame, pl2_flame_spr)
     move_bullets ()
-    accelerate()
 	end
 end
 
@@ -334,10 +333,8 @@ function move_bullets()
           switch(pl1)	  	
           if (pl1.damage == game_over_damage) then
             is_crashing = true;
-            pl1.speed_x = 0
-            pl1.speed_y = speed
             pl1.spr = pl1_flame_spr
-            pl1_flame = make_actor(pl1.x ,pl1.y - 1, flame_tail_spr)
+            pl1_flame = make_actor(pl1.x ,pl1.y - 1, flame_tail_spr1)
           end
         end						
 			end
@@ -351,10 +348,8 @@ function move_bullets()
           switch(pl2) 	
           if (pl2.damage == game_over_damage) then
             is_crashing = true;
-            pl2.speed_x = 0
-            pl2.speed_y = speed
             pl2.spr = pl2_flame_spr
-            pl2_flame = make_actor(pl2.x ,pl2.y - 1, flame_tail_spr)
+            pl2_flame = make_actor(pl2.x ,pl2.y - 1, flame_tail_spr1)
           end
         end		   
 			end
@@ -472,79 +467,55 @@ end
 function move_player(pl,  pl_flame, pl_flame_spr)    
   local pl_speed
 
-
+  // accelerate if holding button
   if (btn(5)) then
-    pl_speed = fast_speed    
+    pl_speed = other_speed    
   else
     pl_speed = speed
   end
 
-  if(pl.direction == "n") then 
-    pl.speed_y = -pl_speed
-    pl.speed_x = -pl_speed
-  
-
-  elseif(pl.direction == "nw") then 
-    pl.speed_y =  0	 
-    pl.speed_x = -pl_speed
-  
-  
-  elseif(pl.direction == "w") then 
-    pl.speed_y =  pl_speed 	 
-    pl.speed_x = -pl_speed
-   
-     
-  elseif (pl.direction == "sw") then 
-    pl.speed_y =  pl_speed	 
-    pl.speed_x = 0
-    
-  
-  elseif (pl.direction == "s") then 
-    pl.speed_y =  pl_speed 	 
-    pl.speed_x = pl_speed
-  
-     
-  elseif(pl.direction == "se") then 
-    pl.speed_y = 0 	 
-    pl.speed_x = pl_speed
-    
-    
-  elseif(pl.direction == "e") then 
-    pl.speed_y = -pl_speed 	 
-    pl.speed_x = pl_speed
-  
-
-  elseif(pl.direction == "ne") then 
-    pl.speed_y = -pl_speed	 
-    pl.speed_x = 0
-  
-  end 
-  
-  
-  
-  
-  
-  pl.x = pl.x + pl.speed_x
-    pl.y = pl.y + pl.speed_y
-    
-
-
-
-
-
-
-
-    if (pl_flame) then
-      pl_flame.y = pl_flame.y + pl.speed_y
-      if (pl_flame.spr == flame_tail_spr1) then
-        pl_flame.spr = flame_tail_spr2
-      else
-        pl_flame.spr = flame_tail_spr1
-      end
-      if (pl_flame.y > max_y) then
-        game_over = true  
-      end
+  // move flaming player
+  if (pl_flame) then
+    pl.y += speed
+    pl_flame.y += speed
+    if (pl_flame.spr == flame_tail_spr1) then
+      pl_flame.spr = flame_tail_spr2
+    else
+      pl_flame.spr = flame_tail_spr1
+    end
+    if (pl_flame.y > max_y) then
+      game_over = true  
+    end
+  // move non-flaming player
+  else
+    if(pl.direction == "nw") then 
+      pl.speed_y = -pl_speed
+      pl.speed_x = -pl_speed
+    elseif(pl.direction == "w") then 
+      pl.speed_y =  0	 
+      pl.speed_x = -pl_speed
+    elseif(pl.direction == "sw") then 
+      pl.speed_y =  pl_speed 	 
+      pl.speed_x = -pl_speed
+    elseif (pl.direction == "s") then 
+      pl.speed_y =  pl_speed	 
+      pl.speed_x = 0
+    elseif (pl.direction == "se") then 
+      pl.speed_y =  pl_speed 	 
+      pl.speed_x = pl_speed
+    elseif(pl.direction == "e") then 
+      pl.speed_y = 0 	 
+      pl.speed_x = pl_speed
+    elseif(pl.direction == "ne") then 
+      pl.speed_y = -pl_speed 	 
+      pl.speed_x = pl_speed
+    elseif(pl.direction == "n") then 
+      pl.speed_y = -pl_speed	 
+      pl.speed_x = 0 
     end 
+    pl.x = pl.x + pl.speed_x
+    pl.y = pl.y + pl.speed_y
+  end 
 end
 
 
