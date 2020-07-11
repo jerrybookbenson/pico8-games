@@ -62,7 +62,7 @@ function _init()
   pl2_rubble_spr2 = 123
   
 	actors = {} --all actors in world
-  game_over = false
+  game_over = true
   game_over_damage = 5 
   middle = 8 
   min_x = .5
@@ -174,7 +174,7 @@ function _draw()
       end
       draw_actor(pl2_rubble1)
       draw_actor(pl2_rubble2)
-    else 
+    elseif (pl1.damage == game_over_damage) then 
       print ("grey won!!!", 45, 10, 9)
       del (actors, pl1_flame)
       del (actors, pl1)
@@ -192,11 +192,15 @@ function _draw()
       draw_actor(pl1_rubble1)
       draw_actor(pl1_rubble2)
     end
-  	print ("press button to play again", 12, 30, 9) 
-    if (btn (3) or btn (3,1)) then 
+    print (" up:single player", 12, 30, 5) 
+    print (" down:multiplayer player", 12, 20, 5) 
+    if (btn (2) or btn (2,1)) then 
       _init() 
-  	end	
-	end
+    end	
+    if (btn (3) or btn(3,1)) then
+      print ("testing!!!", 45, 10, 9)
+    end
+ 	end
 end
  
 function switch(pl)
