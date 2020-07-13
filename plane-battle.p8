@@ -4,8 +4,12 @@ __lua__
 --plane-battle 
 --by jerry benson
 --this is a cool & fun game
-	
 function _init()
+game_over = true
+end
+
+
+function setup()
  
   pause = false 
   is_crashing = false
@@ -62,7 +66,7 @@ function _init()
   pl2_rubble_spr2 = 123
   
 	actors = {} --all actors in world
-  game_over = true
+  game_over = false
   game_over_damage = 5 
   middle = 8 
   min_x = .5
@@ -155,9 +159,9 @@ function _draw()
   cls()
   map(0,0,0,0,16,16)
   foreach(actors,draw_actor)
-  print ("green damage:"..pl1.damage.."    grey damage:"..pl2.damage, 0,120, 9)	 
+  
   if (game_over) then
-  	if (pl2.damage == game_over_damage) then
+  	if (pl2 and pl2.damage == game_over_damage) then
       print ("green won!!!",45, 10, 9)
       del (actors, pl2_flame)
       del (actors, pl2)
@@ -174,7 +178,7 @@ function _draw()
       end
       draw_actor(pl2_rubble1)
       draw_actor(pl2_rubble2)
-    elseif (pl1.damage == game_over_damage) then 
+    elseif (pl1 and pl1.damage == game_over_damage) then 
       print ("grey won!!!", 45, 10, 9)
       del (actors, pl1_flame)
       del (actors, pl1)
@@ -195,11 +199,14 @@ function _draw()
     print (" up:single player", 12, 30, 5) 
     print (" down:multiplayer player", 12, 20, 5) 
     if (btn (2) or btn (2,1)) then 
-      _init() 
+      setup() 
     end	
     if (btn (3) or btn(3,1)) then
       print ("testing!!!", 45, 10, 9)
     end
+    if (pl2 and pl1) then 
+    print ("green damage:"..pl1.damage.."    grey damage:"..pl2.damage, 0,120, 9)	
+    end 
  	end
 end
  
