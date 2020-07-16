@@ -5,7 +5,8 @@ __lua__
 --by jerry benson
 --this is a cool & fun game
 function _init()
-game_over = true
+  game_over = true
+  is_singleplayer = true
 end
 
 
@@ -79,8 +80,10 @@ function setup()
 	pl1_original_direction = "left"
 	pl2_original_direction = "left"
 		  
-  speed = .12
-  other_speed = .06
+  speed = .125
+  other_speed = .0625
+  pl1_speed = speed
+  pl2_speed = speed
 
   pl1_rubble1 = {}
   pl1_rubble2 = {}
@@ -118,11 +121,14 @@ end
 function _update()
 	if (not game_over) then
 		check_boundaries()
-    control_players (pl1, pl1_flame_spr, pl1_n, pl1_s, pl1_w, pl1_e, pl1_nw, pl1_sw, pl1_se, pl1_ne,0)
-    control_players (pl2, pl2_flame_spr, pl2_n, pl2_s, pl2_w, pl2_e, pl2_nw, pl2_sw, pl2_se, pl2_ne,1)
-    move_player (pl1, pl1_flame, pl1_flame_spr,0)
-    move_player (pl2, pl2_flame, pl2_flame_spr,1)
+    pl1_speed = control_players (pl1, pl1_flame_spr, pl1_n, pl1_s, pl1_w, pl1_e, pl1_nw, pl1_sw, pl1_se, pl1_ne,0)
+    if (is_singleplayer == false) then
+      pl2_speed = control_players (pl2, pl2_flame_spr, pl2_n, pl2_s, pl2_w, pl2_e, pl2_nw, pl2_sw, pl2_se, pl2_ne,1)
+    end
+    move_player (pl1, pl1_flame, pl1_flame_spr,pl1_speed)
+    move_player (pl2, pl2_flame, pl2_flame_spr,pl2_speed)
     move_bullets ()
+    singleplayer()
 	end
 end
 
@@ -158,6 +164,7 @@ end
 function _draw()
   cls()
   map(0,0,0,0,16,16)
+  
   foreach(actors,draw_actor)
   
   if (game_over) then
@@ -179,7 +186,7 @@ function _draw()
       draw_actor(pl2_rubble1)
       draw_actor(pl2_rubble2)
     elseif (pl1 and pl1.damage == game_over_damage) then 
-      print ("grey won!!!", 45, 10, 9)
+      print ("grey won!!!", 45, 10, 5)
       del (actors, pl1_flame)
       del (actors, pl1)
       pl1_rubble1.x = pl1_flame.x
@@ -199,15 +206,17 @@ function _draw()
     print (" up:single player", 12, 30, 5) 
     print (" down:multiplayer player", 12, 20, 5) 
     if (btn (2) or btn (2,1)) then 
+      is_singleplayer = false
       setup() 
     end	
     if (btn (3) or btn(3,1)) then
-      print ("testing!!!", 45, 10, 9)
+      is_singleplayer = true
+      setup()
     end
-    if (pl2 and pl1) then 
+  end
+  if (pl2 and pl1) then 
     print ("green damage:"..pl1.damage.."    grey damage:"..pl2.damage, 0,120, 9)	
-    end 
- 	end
+  end
 end
  
 function switch(pl)
@@ -473,19 +482,22 @@ function control_players(pl, pl_flame_spr, pl_n, pl_s, pl_w, pl_e, pl_nw, pl_sw,
      end
   end	
   
+  
+
   if (not btn(0, pl_index) and not btn(1, pl_index) and not btn(4, pl_index)) then 
     pl.is_pressed = false
   end
-end
-
-function move_player(pl,  pl_flame, pl_flame_spr,pl_index)    
-  local pl_speed
 
   if (btn(5,pl_index)) then
-    pl_speed = other_speed        
+    return other_speed        
   else
-    pl_speed = speed
+    return speed
   end
+end
+
+function move_player(pl,  pl_flame, pl_flame_spr,pl_speed)    
+  
+ 
 
   if (pl_flame) then
     pl.y += speed
@@ -529,8 +541,10 @@ function move_player(pl,  pl_flame, pl_flame_spr,pl_index)
   end 
 end
 
+function singleplayer()
+  print ("grey won!!!", 45, 10, 9)
 
-
+end
 
 __gfx__
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
