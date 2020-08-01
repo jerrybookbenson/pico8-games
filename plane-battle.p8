@@ -59,7 +59,7 @@ function setup()
   flame_tail_spr2 = 78
 
   bullet_spr_horiz = 95 
-  bullet_spr_vert = 1111
+  bullet_spr_vert = 111
   
   pl1_rubble_spr1 = 75
   pl1_rubble_spr2 = 91
@@ -562,6 +562,11 @@ function singleplayer()
       if (pl2.spr == pl2_w) then
         make_actor(pl2.x-.6,pl2.y,bullet_spr_horiz,"w")
       end
+
+      
+      if (pl2.damage == game_over_damage) then
+        pl2.spr = pl2_flame_spr
+      end  
     end	
   end
 end
