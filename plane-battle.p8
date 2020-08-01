@@ -205,11 +205,11 @@ function _draw()
     end
     print (" up:single player", 12, 30, 5) 
     print (" down:multiplayer player", 12, 20, 5) 
-    if (btn (2) or btn (2,1)) then 
+    if (btn (3) or btn (3,1)) then 
       is_singleplayer = false
       setup() 
     end	
-    if (btn (3) or btn(3,1)) then
+    if (btn (2) or btn(2,1)) then
       is_singleplayer = true
       setup()
     end
@@ -497,7 +497,6 @@ end
 
 function move_player(pl,  pl_flame, pl_flame_spr,pl_speed)    
   
- 
 
   if (pl_flame) then
     pl.y += speed
@@ -537,13 +536,34 @@ function move_player(pl,  pl_flame, pl_flame_spr,pl_speed)
       pl.speed_x = 0 
     end 
     pl.x = pl.x + pl.speed_x
-    pl.y = pl.y + pl.speed_y
+    pl.y = pl.y + pl.speed_y 
   end 
 end
 
-function singleplayer()
-  print ("grey won!!!", 45, 10, 9)
 
+
+function singleplayer()
+  local is_turning = false
+  if (is_singleplayer) then
+   
+    if (pl1.direction == "n" or pl1.direction == "s" or pl1.direction == "e" or pl1.direction == "w")then
+      pl2.direction = "nw"
+      pl2.spr = pl2_nw  
+      
+    elseif(pl1.direction == "nw" or pl1.direction == "ne" or pl1.direction == "sw" or pl1.direction == "se")then
+      pl2.direction = "w"
+      pl2.spr = pl2_w 
+      
+    end
+    if (is_turning == false and pl2.spr != pl2_flame_spr) then
+      if (pl2.spr == pl2_nw) then
+        make_actor(pl2.x-.6,pl2.y-.6,bullet_spr_horiz,"nw")
+      end
+      if (pl2.spr == pl2_w) then
+        make_actor(pl2.x-.6,pl2.y,bullet_spr_horiz,"w")
+      end
+    end	
+  end
 end
 
 __gfx__
