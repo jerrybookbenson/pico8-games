@@ -543,18 +543,28 @@ end
 
 
 function singleplayer()
-  local is_turning = false
-  if (is_singleplayer) then
    
-    if (pl1.direction == "n" or pl1.direction == "s" or pl1.direction == "e" or pl1.direction == "w")then
-      pl2.direction = "nw"
-      pl2.spr = pl2_nw  
-      
-    elseif(pl1.direction == "nw" or pl1.direction == "ne" or pl1.direction == "sw" or pl1.direction == "se")then
-      pl2.direction = "w"
-      pl2.spr = pl2_w 
-      
-    end
+  --THESE ARE GLOBALS
+  is_turning = false
+   rand_direction = flr(rnd(2))
+   turn_min = 5
+   turn_max = flr(rnd(1000)) + turn_min
+   turn_counter = 0
+
+  if (is_singleplayer and not is_crashing) then
+    if (turn_counter == turn_max) then
+      if (rand_direction == 1) then 
+        if (pl1.direction == "n") then
+          pl2.direction = "nw"
+       
+        end
+      elseif (rand_direction == 0) then
+        if (pl1.direction == "n") then
+          pl2.direction = "ne"
+        end
+      end
+    end   
+    turn_counter = turn_counter + 1
     if (is_turning == false and pl2.spr != pl2_flame_spr) then
       if (pl2.spr == pl2_nw) then
         make_actor(pl2.x-.6,pl2.y-.6,bullet_spr_horiz,"nw")
@@ -566,6 +576,7 @@ function singleplayer()
       
       if (pl2.damage == game_over_damage) then
         pl2.spr = pl2_flame_spr
+
       end  
     end	
   end
