@@ -99,6 +99,12 @@ function setup()
   pl2 = make_actor(min_x + 1,7, pl2_e, "e",  0,  speed)
   pl1_flame = nil
   pl2_flame = nil
+  
+  --only for singleplayer
+  is_turning = false 
+   rand_direction = flr(rnd(2))
+   turn_max = flr(rnd(30))
+   turn_counter = 0
 end
   
 
@@ -212,6 +218,7 @@ function _draw()
     if (btn (2) or btn(2,1)) then
       is_singleplayer = true
       setup()
+      pl2.direction = nw
     end
   end
   if (pl2 and pl1) then 
@@ -479,7 +486,7 @@ function control_players(pl, pl_flame_spr, pl_n, pl_s, pl_w, pl_e, pl_nw, pl_sw,
  		end	    	     	    		 
 		if (pl.spr == pl_w) then
       make_actor(pl.x-.6,pl.y,bullet_spr_horiz,"w")
-     end
+    end
   end	
   
   
@@ -543,36 +550,89 @@ end
 
 
 function singleplayer()
-   
-  --THESE ARE GLOBALS
-  is_turning = false
-   rand_direction = flr(rnd(2))
-   turn_min = 5
-   turn_max = flr(rnd(1000)) + turn_min
-   turn_counter = 0
+  
 
   if (is_singleplayer and not is_crashing) then
+
     if (turn_counter == turn_max) then
       if (rand_direction == 1) then 
+
+
         if (pl1.direction == "n") then
           pl2.direction = "nw"
-       
+          pl2.spr = pl2_nw
         end
-      elseif (rand_direction == 0) then
-        if (pl1.direction == "n") then
+        if (pl1.direction == "nw") then
+          pl2.direction = "w"
+          pl2.spr = pl2_w
+        end
+        if (pl1.direction == "w") then
+          pl2.direction = "sw"
+          pl2.spr = pl2_sw
+        end
+        if (pl1.direction == "sw") then
+          pl2.direction = "s"
+          pl2.spr = pl2_s
+        end
+        if (pl1.direction == "s") then
+          pl2.direction = "se"
+          pl2.spr = pl2_se
+        end
+        if (pl1.direction == "se") then
+          pl2.direction = "e"
+          pl2.spr = pl2_e
+        end
+        if (pl1.direction == "e") then
           pl2.direction = "ne"
+          pl2.spr = pl2_ne
         end
+        if (pl1.direction == "ne") then
+          pl2.direction = "n"
+          pl2.spr = pl2_n
+        end
+       
+        
+      elseif (rand_direction == 0) then
+        
       end
-    end   
+    end 
+
+    if (turn_counter == turn_max) then
+      turn_counter = 0
+      turn_max = flr(rnd(30))
+      rand_direction = flr(rnd(2))
+    end
+
     turn_counter = turn_counter + 1
+    
+    --make pl2 fire
     if (is_turning == false and pl2.spr != pl2_flame_spr) then
       if (pl2.spr == pl2_nw) then
         make_actor(pl2.x-.6,pl2.y-.6,bullet_spr_horiz,"nw")
       end
+      if (pl2.spr == pl2_sw) then
+        make_actor(pl2.x-.6,pl2.y+.6,bullet_spr_horiz,"sw")
+      end
+      if (pl2.spr == pl2_se) then
+        make_actor(pl2.x+.6,pl2.y+.6,bullet_spr_horiz,"se")
+      end
+      if (pl2.spr == pl2_ne) then
+        make_actor(pl2.x+.6,pl2.y-.6,bullet_spr_horiz,"ne")
+      end      
+      if (pl2.spr == pl2_n) then
+        make_actor(pl2.x,pl2.y-.6,bullet_spr_vert,"n")
+      end	
+      if (pl2.spr == pl2_s) then
+        make_actor(pl2.x,pl2.y+.6,bullet_spr_vert,"s")
+       end	    	     	    		 
+      if (pl2.spr == pl2_e) then
+        make_actor(pl2.x+.6,pl2.y,bullet_spr_horiz,"e")
+       end	    	     	    		 
       if (pl2.spr == pl2_w) then
         make_actor(pl2.x-.6,pl2.y,bullet_spr_horiz,"w")
       end
-
+      
+ 
       
       if (pl2.damage == game_over_damage) then
         pl2.spr = pl2_flame_spr
@@ -581,6 +641,8 @@ function singleplayer()
     end	
   end
 end
+
+
 
 __gfx__
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
