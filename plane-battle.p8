@@ -11,7 +11,7 @@ end
 
 
 function setup()
- 
+  
   pause = false 
   is_crashing = false
 
@@ -102,8 +102,8 @@ function setup()
   
   --only for singleplayer
   is_turning = false 
-   rand_direction = flr(rnd(2))
-   turn_max = flr(rnd(30))
+  
+   turn_max = 0
    turn_counter = 0
 end
   
@@ -218,7 +218,6 @@ function _draw()
     if (btn (2) or btn(2,1)) then
       is_singleplayer = true
       setup()
-      pl2.direction = nw
     end
   end
   if (pl2 and pl1) then 
@@ -550,95 +549,194 @@ end
 
 
 function singleplayer()
-  
+  if (pl2.direction == "e") then
+    print ("grey won!!!", 45, 10, 5)
+  end
 
   if (is_singleplayer and not is_crashing) then
 
     if (turn_counter == turn_max) then
-      if (rand_direction == 1) then 
+      turn_counter = 0
+      turn_max = flr(rnd(10))
+      rand_direction = flr(rnd(2))
 
 
-        if (pl1.direction == "n") then
+      if (pl2.direction) == "n" then
+        if (pl1.direction) == "nw" then
+          pl2.direction = "ne"
+          pl2.spr = pl2_ne 
+        elseif (pl1.direction == "ne") then
           pl2.direction = "nw"
           pl2.spr = pl2_nw
+        else
+          if (rand_direction == 0) then
+            pl2.direction = "nw"
+            pl2.spr = pl2_nw  
+          else
+            pl2.direction = "ne"
+            pl2.spr = pl2_ne  
+          end
         end
-        if (pl1.direction == "nw") then
-          pl2.direction = "w"
-          pl2.spr = pl2_w
-        end
-        if (pl1.direction == "w") then
-          pl2.direction = "sw"
-          pl2.spr = pl2_sw
-        end
-        if (pl1.direction == "sw") then
-          pl2.direction = "s"
-          pl2.spr = pl2_s
-        end
-        if (pl1.direction == "s") then
-          pl2.direction = "se"
-          pl2.spr = pl2_se
-        end
-        if (pl1.direction == "se") then
-          pl2.direction = "e"
-          pl2.spr = pl2_e
-        end
-        if (pl1.direction == "e") then
+      end
+      if (pl2.direction) == "e" then
+        if (pl1.direction) == "se" then
           pl2.direction = "ne"
-          pl2.spr = pl2_ne
+          pl2.spr = pl2_ne 
+        elseif (pl1.direction == "ne") then
+          pl2.direction = "se"
+          pl2.spr = pl2_se 
+        else
+          if (rand_direction == 0) then
+            pl2.direction = "ne"
+            pl2.spr = pl2_ne 
+          else
+            pl2.direction = "se"
+            pl2.spr = pl2_se 
+          end
         end
-        if (pl1.direction == "ne") then
+      end
+      if (pl2.direction) == "s" then
+        if (pl1.direction) == "se" then
+          pl2.direction = "sw"
+          pl2.spr = pl2_sw 
+        elseif (pl1.direction == "sw") then
+          pl2.direction = "se"
+          pl2.spr = pl2_se 
+        else
+          if (rand_direction == 0) then
+            pl2.direction = "sw"
+            pl2.spr = pl2_sw 
+          else
+            pl2.direction = "se"
+            pl2.spr = pl2_se 
+          end
+        end
+      end
+      if (pl2.direction) == "w" then
+        if (pl1.direction) == "sw" then
+          pl2.direction = "nw"
+          pl2.spr = pl2_nw 
+        elseif (pl1.direction == "nw") then
+          pl2.direction = "sw"
+          pl2.spr = pl2_sw 
+        else
+          if (rand_direction == 0) then
+            pl2.direction = "nw"
+            pl2.spr = pl2_ne 
+          else
+            pl2.direction = "sw"
+            pl2.spr = pl2_se 
+          end
+        end
+      end
+      if (pl2.direction) == "nw" then
+        if (pl1.direction) == "w" then
           pl2.direction = "n"
           pl2.spr = pl2_n
+        elseif (pl1.direction == "n") then
+          pl2.direction = "w"
+          pl2.spr = pl2_w 
+        else
+          if (rand_direction == 0) then
+            pl2.direction = "w"
+            pl2.spr = pl2_w 
+          else
+            pl2.direction = "sw"
+            pl2.spr = pl2_sw 
+          end
         end
-       
-        
-      elseif (rand_direction == 0) then
-        
+      end
+      if (pl2.direction) == "ne" then
+        if (pl1.direction) == "n" then
+          pl2.direction = "e"
+          pl2.spr = pl2_e 
+        elseif (pl1.direction == "e") then
+          pl2.direction = "n"
+          pl2.spr = pl2_n 
+        else
+          if (rand_direction == 0) then
+            pl2.direction = "n"
+            pl2.spr = pl2_n 
+          else
+            pl2.direction = "e"
+            pl2.spr = pl2_e 
+          end
+        end
+      end
+      if (pl2.direction) == "se" then
+        if (pl1.direction) == "s" then
+          pl2.direction = "e"
+          pl2.spr = pl2_e 
+        elseif (pl1.direction == "e") then
+          pl2.direction = "s"
+          pl2.spr = pl2_se 
+        else
+          if (rand_direction == 0) then
+            pl2.direction = "e"
+            pl2.spr = pl2_e 
+          else
+            pl2.direction = "s"
+            pl2.spr = pl2_s 
+          end
+        end
+      end
+      if (pl2.direction) == "sw" then
+        if (pl1.direction) == "s" then
+          pl2.direction = "w"
+          pl2.spr = pl2_w 
+        elseif (pl1.direction == "w") then
+          pl2.direction = "s"
+          pl2.spr = pl2_se 
+        else
+          if (rand_direction == 0) then
+            pl2.direction = "w"
+            pl2.spr = pl2_w 
+          else
+            pl2.direction = "s"
+            pl2.spr = pl2_s 
+          end
+        end
       end
     end 
-
-    if (turn_counter == turn_max) then
-      turn_counter = 0
-      turn_max = flr(rnd(30))
-      rand_direction = flr(rnd(2))
-    end
-
-    turn_counter = turn_counter + 1
+  end  
+     
     
-    --make pl2 fire
-    if (is_turning == false and pl2.spr != pl2_flame_spr) then
-      if (pl2.spr == pl2_nw) then
-        make_actor(pl2.x-.6,pl2.y-.6,bullet_spr_horiz,"nw")
-      end
-      if (pl2.spr == pl2_sw) then
-        make_actor(pl2.x-.6,pl2.y+.6,bullet_spr_horiz,"sw")
-      end
-      if (pl2.spr == pl2_se) then
-        make_actor(pl2.x+.6,pl2.y+.6,bullet_spr_horiz,"se")
-      end
-      if (pl2.spr == pl2_ne) then
-        make_actor(pl2.x+.6,pl2.y-.6,bullet_spr_horiz,"ne")
-      end      
-      if (pl2.spr == pl2_n) then
-        make_actor(pl2.x,pl2.y-.6,bullet_spr_vert,"n")
-      end	
-      if (pl2.spr == pl2_s) then
+
+  turn_counter = turn_counter + 1
+  
+  --make pl2 fire
+  if (is_turning == false and pl2.spr != pl2_flame_spr) then
+    if (pl2.spr == pl2_nw) then
+      make_actor(pl2.x-.6,pl2.y-.6,bullet_spr_horiz,"nw")
+    end
+    if (pl2.spr == pl2_sw) then
+      make_actor(pl2.x-.6,pl2.y+.6,bullet_spr_horiz,"sw")
+    end
+    if (pl2.spr == pl2_se) then
+      make_actor(pl2.x+.6,pl2.y+.6,bullet_spr_horiz,"se")
+    end
+    if (pl2.spr == pl2_ne) then
+      make_actor(pl2.x+.6,pl2.y-.6,bullet_spr_horiz,"ne")
+    end      
+    if (pl2.spr == pl2_n) then
+      make_actor(pl2.x,pl2.y-.6,bullet_spr_vert,"n")
+    end	
+    if (pl2.spr == pl2_s) then
         make_actor(pl2.x,pl2.y+.6,bullet_spr_vert,"s")
        end	    	     	    		 
-      if (pl2.spr == pl2_e) then
+    if (pl2.spr == pl2_e) then
         make_actor(pl2.x+.6,pl2.y,bullet_spr_horiz,"e")
        end	    	     	    		 
-      if (pl2.spr == pl2_w) then
+    if (pl2.spr == pl2_w) then
         make_actor(pl2.x-.6,pl2.y,bullet_spr_horiz,"w")
-      end
+    end
       
  
       
-      if (pl2.damage == game_over_damage) then
-        pl2.spr = pl2_flame_spr
+    if (pl2.damage == game_over_damage) then
+      pl2.spr = pl2_flame_spr
 
-      end  
-    end	
+    end  	
   end
 end
 
