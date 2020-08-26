@@ -126,39 +126,71 @@ end
 
 function _update()
 	if (not game_over) then
-		check_boundaries()
+    for actor in all(actors) do
+      check_boundaries(actor)
+    end
     pl1_speed = control_players (pl1, pl1_flame_spr, pl1_n, pl1_s, pl1_w, pl1_e, pl1_nw, pl1_sw, pl1_se, pl1_ne,0)
     if (is_singleplayer == false) then
       pl2_speed = control_players (pl2, pl2_flame_spr, pl2_n, pl2_s, pl2_w, pl2_e, pl2_nw, pl2_sw, pl2_se, pl2_ne,1)
     end
+    singleplayer()
     move_player (pl1, pl1_flame, pl1_flame_spr,pl1_speed)
     move_player (pl2, pl2_flame, pl2_flame_spr,pl2_speed)
     move_bullets ()
-    singleplayer()
+    check_collision()
 	end
 end
 
-function check_boundaries ()
-  if (pl1.y < min_y - .5 and (pl1.direction == "nw" or pl1.direction == "n" or pl1.direction == "ne")) then
-    pl1.y = max_y 
-  elseif (pl1.y > max_y - .30 and (pl1.direction == "sw" or pl1.direction == "s" or pl1.direction == "se")) then
-    pl1.y = min_y - .5  
-  elseif (pl1.x > max_x + .5 and (pl1.direction == "se" or pl1.direction == "e" or pl1.direction == "ne")) then
-    pl1.x = min_x - .5  
-  elseif (pl1.x < min_x - .3 and (pl1.direction == "sw" or pl1.direction == "w" or pl1.direction == "nw")) then
-    pl1.x = max_x + .5
+function check_boundaries (actor)
+  
+  if (actor.y < min_y - .5 and (actor.direction == "nw" or actor.direction == "n" or actor.direction == "ne")) then
+    actor.y =  actor.y + max_y + .5
+  elseif (actor.y > max_y + .5 and (actor.direction == "sw" or actor.direction == "s" or actor.direction == "se")) then
+    actor.y =  actor.y  - max_y - .5  
+  elseif (actor.x > max_x + .5 and (actor.direction == "se" or actor.direction == "e" or actor.direction == "ne")) then
+    actor.x =  actor.x - max_x - .5  
+  elseif (actor.x < min_x - .5 and (actor.direction == "sw" or actor.direction == "w" or actor.direction == "nw")) then
+    actor.x =  actor.x + max_x + .5
   end  
-  if (pl2.y < min_y - .5 and (pl2.direction == "nw" or pl2.direction == "n" or pl2.direction == "ne")) then
-    pl2.y = max_y 
-  elseif (pl2.y > max_y - .30 and (pl2.direction == "sw" or pl2.direction == "s" or pl2.direction == "se")) then
-    pl2.y = min_y - .5  
-  elseif (pl2.x > max_x + .5 and (pl2.direction == "se" or pl2.direction == "e" or pl2.direction == "ne")) then
-    pl2.x = min_x - .5  
-  elseif (pl2.x < min_x - .3 and (pl2.direction == "sw" or pl2.direction == "w" or pl2.direction == "nw")) then
-    pl2.x = max_x + .5  
+end
+
+function check_collision()
+  for actor in all(actors) do
+		if (actor.spr == bullet_spr_horiz or actor.spr == bullet_spr_vert) then
+      if (actor.x >  pl1.x -.5 
+        and actor.x < pl1.x +.5  
+        and actor.y > pl1.y - .5  
+        and actor.y <  pl1.y +.5) then  
+        del (actors, actor)
+        if (not is_crashing) then
+          pl1.damage = pl1.damage + 1	
+          switch(pl1)	  	
+          if (pl1.damage == game_over_damage) then
+            is_crashing = true;
+            pl1.spr = pl1_flame_spr
+            pl1_flame = make_actor(pl1.x ,pl1.y - 1, flame_tail_spr1)
+          end
+        end						
+      end
+      if (actor.x >  pl2.x -.5  
+        and actor.x < pl2.x +.5  
+        and actor.y > pl2.y - .5  
+        and actor.y <  pl2.y +.5) then  
+        del (actors, actor)
+        if (not is_crashing) then
+          pl2.damage = pl2.damage + 1
+          switch(pl2) 	
+          if (pl2.damage == game_over_damage) then
+            is_crashing = true;
+            pl2.spr = pl2_flame_spr
+            pl2_flame = make_actor(pl2.x ,pl2.y - 1, flame_tail_spr1)
+          end
+        end		   
+      end
+    end
   end
 end
-  
+
 
 
 function draw_actor(a) 
@@ -336,15 +368,8 @@ function move_bullets()
 				actor.x = actor.x + bullet_speed 						
       end
 
-      if (actor.y < min_y - .5 and (actor.direction == "nw" or actor.direction == "n" or actor.direction == "ne")) then
-        actor.y = max_y 
-      elseif (actor.y > max_y - .30 and (actor.direction == "sw" or actor.direction == "s" or actor.direction == "se")) then
-        actor.y = min_y - .5  
-      elseif (actor.x > max_x + .5 and (actor.direction == "se" or actor.direction == "e" or actor.direction == "ne")) then
-        actor.x = min_x - .5  
-      elseif (actor.x < min_x - .3 and (actor.direction == "sw" or actor.direction == "w" or actor.direction == "nw")) then
-        actor.x = max_x + .5
-      end
+      
+     
 
       actor.bullet_counter += 1 
       if (actor.bullet_counter == 30) then
@@ -352,36 +377,7 @@ function move_bullets()
       end
       
 
-      if (actor.x >  pl1.x -.5 
-        and actor.x < pl1.x +.5  
-  			and actor.y > pl1.y - .5  
-  			and actor.y <  pl1.y +.5) then  
-        del (actors, actor)
-        if (not is_crashing) then
-          pl1.damage = pl1.damage + 1	
-          switch(pl1)	  	
-          if (pl1.damage == game_over_damage) then
-            is_crashing = true;
-            pl1.spr = pl1_flame_spr
-            pl1_flame = make_actor(pl1.x ,pl1.y - 1, flame_tail_spr1)
-          end
-        end						
-			end
-			if (actor.x >  pl2.x -.5  
-	     	and actor.x < pl2.x +.5  
-  			and actor.y > pl2.y - .5  
-  			and actor.y <  pl2.y +.5) then  
-        del (actors, actor)
-        if (not is_crashing) then
-          pl2.damage = pl2.damage + 1
-          switch(pl2) 	
-          if (pl2.damage == game_over_damage) then
-            is_crashing = true;
-            pl2.spr = pl2_flame_spr
-            pl2_flame = make_actor(pl2.x ,pl2.y - 1, flame_tail_spr1)
-          end
-        end		   
-			end
+
 	  end
   end
 end
@@ -458,12 +454,12 @@ function control_players(pl, pl_flame_spr, pl_n, pl_s, pl_w, pl_e, pl_nw, pl_sw,
       pl.spr = pl_n 
       pl.direction = "n" 
     end
-  	  
+	  
 
 	elseif (btn(4,pl_index) and not pl.is_pressed and pl.spr != pl_flame_spr) then
 		pl.is_pressed = true
     if (pl.spr == pl_nw) then
-			make_actor(pl.x-.6,pl.y-.6,bullet_spr_horiz,"nw")
+      make_actor(pl.x-.6,pl.y-.6,bullet_spr_horiz,"nw") 
     end
     if (pl.spr == pl_sw) then
 			make_actor(pl.x-.6,pl.y+.6,bullet_spr_horiz,"sw")
