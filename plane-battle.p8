@@ -2,7 +2,7 @@ pico-8 cartridge // http://www.pico-8.com
 version 16
 __lua__
 --plane-battle 
---by jerry benson
+--by jerry benson and bryan benson
 --this is a cool & fun game
 function _init()
   game_over = true
