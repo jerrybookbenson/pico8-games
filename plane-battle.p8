@@ -133,7 +133,9 @@ function _update()
     if (is_singleplayer == false) then
       pl2_speed = control_players (pl2, pl2_flame_spr, pl2_n, pl2_s, pl2_w, pl2_e, pl2_nw, pl2_sw, pl2_se, pl2_ne,1)
     end
-    singleplayer()
+    if (is_singleplayer) then
+      singleplayer()
+    end
     move_player (pl1, pl1_flame, pl1_flame_spr,pl1_speed)
     move_player (pl2, pl2_flame, pl2_flame_spr,pl2_speed)
     move_bullets ()
@@ -545,11 +547,9 @@ end
 
 
 function singleplayer()
-  if (pl2.direction == "e") then
-    print ("grey won!!!", 45, 10, 5)
-  end
+  
 
-  if (is_singleplayer and not is_crashing) then
+  if (not is_crashing) then
 
     if (turn_counter == turn_max) then
       turn_counter = 0
