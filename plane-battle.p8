@@ -1,8 +1,8 @@
 pico-8 cartridge // http://www.pico-8.com
-version 16
+version 18
 __lua__
 --plane-battle 
---by jerry benson and bryan benson
+--by jerry benson
 --this is a cool & fun game
 function _init()
   game_over = true
@@ -60,6 +60,9 @@ function setup()
 
   bullet_spr_horiz = 95 
   bullet_spr_vert = 111
+
+  mortar_spr = 116
+  mortar_explosion_spr = 100
   
   pl1_rubble_spr1 = 75
   pl1_rubble_spr2 = 91
@@ -125,7 +128,10 @@ function make_actor(x, y, spr, d,  speed_y , speed_x)
 end
 
 function _update()
-	if (not game_over) then
+  if (not game_over) then
+    --switch back to normal any players that were hit in last loop and show hit sprite
+    switch_back(pl1)
+    switch_back(pl2)
     for actor in all(actors) do
       check_boundaries(actor)
     end
@@ -139,7 +145,9 @@ function _update()
     move_player (pl1, pl1_flame, pl1_flame_spr,pl1_speed)
     move_player (pl2, pl2_flame, pl2_flame_spr,pl2_speed)
     move_bullets ()
-    check_collision()
+    move_mortars ()
+    check_collision(pl1, pl1_flame_spr)
+    check_collision(pl2, pl2_flame_spr)
 	end
 end
 
@@ -156,36 +164,26 @@ function check_boundaries (actor)
   end  
 end
 
-function check_collision()
+function check_collision(pl, flame_spr, flame)
   for actor in all(actors) do
-		if (actor.spr == bullet_spr_horiz or actor.spr == bullet_spr_vert) then
-      if (actor.x >  pl1.x -.5 
-        and actor.x < pl1.x +.5  
-        and actor.y > pl1.y - .5  
-        and actor.y <  pl1.y +.5) then  
+		if (actor.spr == bullet_spr_horiz or actor.spr == bullet_spr_vert or actor.spr == mortar_spr or actor.sp == mortar_explosion_spr) then
+      if (actor.x >  pl.x -.5  
+        and actor.x < pl.x +.5  
+        and actor.y > pl.y - .5  
+        and actor.y <  pl.y +.5) then  
         del (actors, actor)
         if (not is_crashing) then
-          pl1.damage = pl1.damage + 1	
-          switch(pl1)	  	
-          if (pl1.damage == game_over_damage) then
+          pl.damage = pl.damage + 1
+          switch(pl) 	
+          if (pl.damage == game_over_damage or actor.spr == mortar_explosion_spr) then
+            pl.damage = game_over_damage
             is_crashing = true;
-            pl1.spr = pl1_flame_spr
-            pl1_flame = make_actor(pl1.x ,pl1.y - 1, flame_tail_spr1)
-          end
-        end						
-      end
-      if (actor.x >  pl2.x -.5  
-        and actor.x < pl2.x +.5  
-        and actor.y > pl2.y - .5  
-        and actor.y <  pl2.y +.5) then  
-        del (actors, actor)
-        if (not is_crashing) then
-          pl2.damage = pl2.damage + 1
-          switch(pl2) 	
-          if (pl2.damage == game_over_damage) then
-            is_crashing = true;
-            pl2.spr = pl2_flame_spr
-            pl2_flame = make_actor(pl2.x ,pl2.y - 1, flame_tail_spr1)
+            pl.spr = flame_spr
+            if (pl == pl1) then
+              pl1_flame = make_actor(pl.x ,pl.y - 1, flame_tail_spr1)
+            else 
+              pl2_flame = make_actor(pl.x ,pl.y - 1, flame_tail_spr1)
+            end
           end
         end		   
       end
@@ -336,9 +334,7 @@ function switch_back(pl)
   end
 end
 
-function move_bullets() 
-  switch_back(pl1)
-  switch_back(pl2)
+function move_bullets()
 	for actor in all(actors) do
 		if (actor.spr == bullet_spr_horiz or actor.spr == bullet_spr_vert) then
 			if (actor.direction == "n") then
@@ -370,22 +366,18 @@ function move_bullets()
 				actor.x = actor.x + bullet_speed 						
       end
 
-      
-     
-
       actor.bullet_counter += 1 
       if (actor.bullet_counter == 30) then
         del(actors,actor)
       end
-      
-
-
 	  end
   end
 end
 
+function move_mortars() 
+end
+
 function control_players(pl, pl_flame_spr, pl_n, pl_s, pl_w, pl_e, pl_nw, pl_sw, pl_se, pl_ne,pl_index)
-  
   -- left
   if (btn(0,pl_index) and pl.x > min_x and not pl.is_pressed and pl.spr != pl_flame_spr ) then 
     pl.is_pressed = true
@@ -421,6 +413,7 @@ function control_players(pl, pl_flame_spr, pl_n, pl_s, pl_w, pl_e, pl_nw, pl_sw,
       pl.spr = pl_n 
       pl.direction = "n" 
     end
+
   --right  
   elseif (btn(1,pl_index) and pl.x < max_x  and not pl.is_pressed  and pl.spr != pl_flame_spr )  then
     pl.is_pressed = true
@@ -456,8 +449,8 @@ function control_players(pl, pl_flame_spr, pl_n, pl_s, pl_w, pl_e, pl_nw, pl_sw,
       pl.spr = pl_n 
       pl.direction = "n" 
     end
-	  
 
+  --bullet  
 	elseif (btn(4,pl_index) and not pl.is_pressed and pl.spr != pl_flame_spr) then
 		pl.is_pressed = true
     if (pl.spr == pl_nw) then
@@ -485,13 +478,13 @@ function control_players(pl, pl_flame_spr, pl_n, pl_s, pl_w, pl_e, pl_nw, pl_sw,
       make_actor(pl.x-.6,pl.y,bullet_spr_horiz,"w")
     end
   end	
-  
-  
 
+  --tell when user releases the button for no continuous fire
   if (not btn(0, pl_index) and not btn(1, pl_index) and not btn(4, pl_index)) then 
     pl.is_pressed = false
   end
 
+  -- allow user to slow down
   if (btn(5,pl_index)) then
     return other_speed        
   else
@@ -500,8 +493,6 @@ function control_players(pl, pl_flame_spr, pl_n, pl_s, pl_w, pl_e, pl_nw, pl_sw,
 end
 
 function move_player(pl,  pl_flame, pl_flame_spr,pl_speed)    
-  
-
   if (pl_flame) then
     pl.y += speed
     pl_flame.y += speed
@@ -547,7 +538,6 @@ end
 
 
 function singleplayer()
-  
 
   if (not is_crashing) then
 
@@ -726,13 +716,7 @@ function singleplayer()
     if (pl2.spr == pl2_w) then
         make_actor(pl2.x-.6,pl2.y,bullet_spr_horiz,"w")
     end
-      
- 
-      
-    if (pl2.damage == game_over_damage) then
-      pl2.spr = pl2_flame_spr
-
-    end  	
+      	
   end
 end
 
@@ -787,19 +771,19 @@ __gfx__
 08883380855555550855555508333333000000000000000000000000000033000555555500555555003333330983393303380000055556050333360300000000
 00833380088855880855885508338833000000000000000000000000000333000000550000550055003300330933036300300000050550000303300000005000
 08333800000855588555808883338088000000000000000000000000003330000000555005550000033300000330096000000000000550000000300000000000
-0088800000085588588555803883338000000000000000000000000000000000000055005005550030033300000a0000000a0000ccc777cc7ccccccc00000000
-0833380808085585558558003383380000000000000000000000000000333000000055055505500033033000000a0a0000aa0000cc77777777777ccc00000000
-008338838586555555555880333338800000000000000000000000000003300305065555555550003333300000aa0a0559aa0000c7777777777777cc00000000
-88663833855655558555566883333668000000000000000000000000006630330556555505555660033336600aaaa905589a0000c77777777777777705000050
-33333333855555880885556508833363000000000000000000000000333333330555550000055565000333630989955555990000777777777777777700000000
-833333380888558000085555000833330000000000000000000000000333333000005500000055550000333309855955555800007777c7777777777c00000000
-08883380008555800008558800083388000000000000000000000000000033000005550000005500000033000955556500500000cccccccccccccccc00000000
-00833380085558000008555800083338000000000000000000000000000333000055500000005550000033300550096000000000cccccccccccccccc00000000
+0088800000085588588555803883338009009009000000000000000000000000000055005005550030033300000a0000000a0000ccc777cc7ccccccc00000000
+0833380808085585558558003383380089009980000000000000000000333000000055055505500033033000000a0a0000aa0000cc77777777777ccc00000000
+008338838586555555555880333338800089990000000000000000000003300305065555555550003333300000aa0a0559aa0000c7777777777777cc00000000
+88663833855655558555566883333668099888090000000000000000006630330556555505555660033336600aaaa905589a0000c77777777777777705000050
+33333333855555880885556508833363008888900000000000000000333333330555550000055565000333630989955555990000777777777777777700000000
+833333380888558000085555000833339880880000000000000000000333333000005500000055550000333309855955555800007777c7777777777c00000000
+08883380008555800008558800083388090090990000000000000000000033000005550000005500000033000955556500500000cccccccccccccccc00000000
+00833380085558000008555800083338000080000000000000000000000333000055500000005550000033300550096000000000cccccccccccccccc00000000
 00083338008880000855588508333883000000000000000000000000000033300000000000555005003330030000000a0a000000cccccccc777ccccccccccccc
 008333800855580800855855008338330000000000000000000000000003330000555000000550550003303300a000090aa00000ccc77777777777cccccccccc
-008338880085588508855555088333330000000000000000000000000003300000055005000555550003333300a00a0559aa0000c7777777777777cccccccccc
-08833333886658558665555886633338000000000000000000000000000333330066505506655550066333300aaaa905589a0000777777777777777ccccccccc
-8333363355555555565558803633388000000000000000000000000003333633555555555655500036333000098995555599000077777777777777cccccccccc
+008338880085588508855555088333330000800000000000000000000003300000055005000555550003333300a00a0559aa0000c7777777777777cccccccccc
+08833333886658558665555886633338000080000000000000000000000333330066505506655550066333300aaaa905589a0000777777777777777ccccccccc
+8333363355555555565558803633388000008000000000000000000003333633555555555655500036333000098995555599000077777777777777cccccccccc
 83333683555555585555800033338000000000000000000000000000033336035555555055550000333300000985595555580000c7777777777777cccccccccc
 83833808888855808855800088338000000000000000000000000000030330000000550000550000003300000955556500500000cc777777777ccccccccccccc
 08083800008555808555800083338000000000000000000000000000000030000005550005550000033300000550096000000000ccccc7777ccccccccccccccc
