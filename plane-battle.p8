@@ -82,7 +82,7 @@ function setup()
 	pl2_direction = "left"
 	pl1_original_direction = "left"
 	pl2_original_direction = "left"
-		  
+      
   speed = .125
   other_speed = .0625
   pl1_speed = speed
@@ -111,7 +111,7 @@ function setup()
 end
   
 
-function make_actor(x, y, spr, d,  speed_y , speed_x)
+function make_actor(x, y, spr, d,  speed_y , speed_x,explosion_y )
   a={}
   a.is_pressed = false
   a.damage = 0
@@ -123,6 +123,9 @@ function make_actor(x, y, spr, d,  speed_y , speed_x)
   a.speed_y = speed_y
   a.speed_x = speed_x
   a.bullet_counter = 0
+  a.turn_count = 0
+  a.explosion_y = explosion_y
+  a.explosion_counter = 0
   add(actors,a)
   return a 
 end
@@ -135,9 +138,9 @@ function _update()
     for actor in all(actors) do
       check_boundaries(actor)
     end
-    pl1_speed = control_players (pl1, pl1_flame_spr, pl1_n, pl1_s, pl1_w, pl1_e, pl1_nw, pl1_sw, pl1_se, pl1_ne,0)
+    pl1_speed = control_players (pl1, pl1_flame_spr, pl1_n, pl1_s, pl1_w, pl1_e, pl1_nw, pl1_sw, pl1_se, pl1_ne,0, pl1_turn_count)
     if (is_singleplayer == false) then
-      pl2_speed = control_players (pl2, pl2_flame_spr, pl2_n, pl2_s, pl2_w, pl2_e, pl2_nw, pl2_sw, pl2_se, pl2_ne,1)
+      pl2_speed = control_players (pl2, pl2_flame_spr, pl2_n, pl2_s, pl2_w, pl2_e, pl2_nw, pl2_sw, pl2_se, pl2_ne,1, pl2_turn_count)
     end
     if (is_singleplayer) then
       singleplayer()
@@ -166,7 +169,7 @@ end
 
 function check_collision(pl, flame_spr, flame)
   for actor in all(actors) do
-		if (actor.spr == bullet_spr_horiz or actor.spr == bullet_spr_vert or actor.spr == mortar_spr or actor.sp == mortar_explosion_spr) then
+		if (actor.spr == bullet_spr_horiz or actor.spr == bullet_spr_vert or actor.spr == mortar_spr or actor.spr == mortar_explosion_spr) then
       if (actor.x >  pl.x -.5  
         and actor.x < pl.x +.5  
         and actor.y > pl.y - .5  
@@ -241,8 +244,8 @@ function _draw()
       draw_actor(pl1_rubble1)
       draw_actor(pl1_rubble2)
     end
-    print (" up:single player", 12, 30, 5) 
-    print (" down:multiplayer player", 12, 20, 5) 
+    print (" up:single player", 12, 20, 5) 
+    print (" down:multiplayer player", 12, 30, 5) 
     if (btn (3) or btn (3,1)) then 
       is_singleplayer = false
       setup() 
@@ -374,13 +377,33 @@ function move_bullets()
   end
 end
 
-function move_mortars() 
-end
+function move_mortars()
+  local rand_mortar = flr(rnd(100))
+  if (rand_mortar == 1) then
+    make_actor(rnd(max_x), max_y + 1, mortar_spr, "n",speed, 0,rnd(max_y))
+  end
+  for actor in all(actors) do
+    if (actor.spr == mortar_spr) then
+      if (actor.y <= actor.explosion_y) then
+        del(actors,actor)
+        make_actor(actor.x,actor.y, mortar_explosion_spr)
+      end
+      actor.y = actor.y - speed
+    elseif (actor.spr == mortar_explosion_spr) then
+      actor.explosion_counter = actor.explosion_counter + 1 
+      if (actor.explosion_counter == 10) then
+        del(actors,actor)
+      end
+    end
+  end
+  
+end 
 
-function control_players(pl, pl_flame_spr, pl_n, pl_s, pl_w, pl_e, pl_nw, pl_sw, pl_se, pl_ne,pl_index)
+function control_players(pl, pl_flame_spr, pl_n, pl_s, pl_w, pl_e, pl_nw, pl_sw, pl_se, pl_ne,pl_index, pl_turn_count)
   -- left
-  if (btn(0,pl_index) and pl.x > min_x and not pl.is_pressed and pl.spr != pl_flame_spr ) then 
+  if (btn(0,pl_index) and pl.x > min_x and pl.turn_count > 10 and pl.spr != pl_flame_spr ) then 
     pl.is_pressed = true
+    pl.turn_count = 0
     if(pl.direction == "n") then 
       pl.spr = pl_nw 
       pl.direction = "nw" 
@@ -415,8 +438,9 @@ function control_players(pl, pl_flame_spr, pl_n, pl_s, pl_w, pl_e, pl_nw, pl_sw,
     end
 
   --right  
-  elseif (btn(1,pl_index) and pl.x < max_x  and not pl.is_pressed  and pl.spr != pl_flame_spr )  then
+  elseif (btn(1,pl_index) and pl.x < max_x and pl.turn_count > 10  and pl.spr != pl_flame_spr )  then
     pl.is_pressed = true
+    pl.turn_count = 0
     if(pl.direction == "n") then 
       pl.spr = pl_ne
       pl.direction = "ne" 
@@ -478,6 +502,10 @@ function control_players(pl, pl_flame_spr, pl_n, pl_s, pl_w, pl_e, pl_nw, pl_sw,
       make_actor(pl.x-.6,pl.y,bullet_spr_horiz,"w")
     end
   end	
+
+  if (pl.turn_count <= 10) then
+    pl.turn_count = pl.turn_count + 1
+  end
 
   --tell when user releases the button for no continuous fire
   if (not btn(0, pl_index) and not btn(1, pl_index) and not btn(4, pl_index)) then 
@@ -788,7 +816,7 @@ __gfx__
 83833808888855808855800088338000000000000000000000000000030330000000550000550000003300000955556500500000cc777777777ccccccccccccc
 08083800008555808555800083338000000000000000000000000000000030000005550005550000033300000550096000000000ccccc7777ccccccccccccccc
 __gff__
-0000000000002000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000100000000000000000000
+0000000000002000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000
 0000000000000000000000000000008000000000000000000000000000000000010000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __map__
 7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
