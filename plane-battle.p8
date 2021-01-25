@@ -7,12 +7,16 @@ __lua__
 function _init()
   game_over = true
   is_singleplayer = true
+  war = "ww3"
+  game_over_counter = 0
+  is_demo = false
 end
 
 
 function setup()
   actors = {} --all actors in world
-  
+  game_over_counter = 0
+
   speed = .125
   other_speed = .0625
   
@@ -24,7 +28,6 @@ function setup()
   
   pause = false 
   is_crashing = false
-  war = "ww3"
   --player direction spr
   if (war == "ww1") then
     pl1_n = 163
@@ -269,9 +272,11 @@ function _update()
     
     check_boundaries(actor)
     
-    pl1_speed = control_players (pl1, pl1_flame_spr, pl1_n, pl1_s, pl1_w, pl1_e, pl1_nw, pl1_sw, pl1_se, pl1_ne,0, pl1_turn_count)
-    if (is_singleplayer == false) then
-      pl2_speed = control_players (pl2, pl2_flame_spr, pl2_n, pl2_s, pl2_w, pl2_e, pl2_nw, pl2_sw, pl2_se, pl2_ne,1, pl2_turn_count)
+    if (not is_demo) then
+      pl1_speed = control_players (pl1, pl1_flame_spr, pl1_n, pl1_s, pl1_w, pl1_e, pl1_nw, pl1_sw, pl1_se, pl1_ne,0, pl1_turn_count)
+      if (is_singleplayer == false) then
+        pl2_speed = control_players (pl2, pl2_flame_spr, pl2_n, pl2_s, pl2_w, pl2_e, pl2_nw, pl2_sw, pl2_se, pl2_ne,1, pl2_turn_count)
+      end
     end
     if (is_singleplayer) then
       singleplayer()
@@ -358,6 +363,7 @@ function _draw()
   map(0,0,0,0,16,16)
   foreach(actors,draw_actor)
   if (game_over) then
+    game_over_counter = game_over_counter + 1
   	if (pl2 and pl2.damage == game_over_damage) then
       print ("green won!!!",45, 10, 9)
       del (actors, pl2_flame)
@@ -397,10 +403,23 @@ function _draw()
     print (" down:multiplayer player", 12, 30, 5) 
     if (btn (3) or btn (3,1)) then 
       is_singleplayer = false
+      is_demo = false
       setup() 
-    end	
-    if (btn (2) or btn(2,1)) then
+    elseif (btn (2) or btn(2,1)) then
       is_singleplayer = true
+      is_demo = false
+      setup()
+    elseif (game_over_counter > 200) then
+      is_singleplayer = false
+      local war_nbr = ceil(rnd(3))
+      if (war_nbr == 1) then
+        war = "ww1"
+      elseif (war_nbr == 2) then
+        war = "ww2"
+      else
+        war = "ww3"
+      end 
+      is_demo = true
       setup()
     end
   end
