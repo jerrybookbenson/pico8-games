@@ -6,16 +6,18 @@ __lua__
 --this is a cool & fun game
 function _init()
   game_over = true
+  battle_over = true
   is_singleplayer = true
-  war = "ww3"
+  battle = 1
   game_over_counter = 0
   is_demo = false
+  get_ready = false
+  get_ready_counter = 0
 end
 
 
 function setup()
   actors = {} --all actors in world
-  game_over_counter = 0
 
   speed = .125
   other_speed = .0625
@@ -29,7 +31,7 @@ function setup()
   pause = false 
   is_crashing = false
   --player direction spr
-  if (war == "ww1") then
+  if (battle == 1) then
     pl1_n = 163
     pl1_ne = 179
     pl1_e = 130
@@ -82,7 +84,7 @@ function setup()
     bullet_spr_vert = 164
     
     bomb_ww1_spr = 183
-  elseif (war == "ww2") then
+  elseif (battle == 2) then
     pl1_n = 87
     pl1_ne = 74
     pl1_e = 71
@@ -143,7 +145,7 @@ function setup()
     mortar_spr = 116
 
     bomb_ww2_spr = 118
-  elseif (war == "ww3") then
+  elseif (battle == 3) then
     pl1_n = 227
     pl1_ne = 243
     pl1_e = 194
@@ -273,22 +275,22 @@ function _update()
     check_boundaries(actor)
     
     if (not is_demo) then
-      pl1_speed = control_players (pl1, pl1_flame_spr, pl1_n, pl1_s, pl1_w, pl1_e, pl1_nw, pl1_sw, pl1_se, pl1_ne,0, pl1_turn_count)
-      if (is_singleplayer == false) then
-        pl2_speed = control_players (pl2, pl2_flame_spr, pl2_n, pl2_s, pl2_w, pl2_e, pl2_nw, pl2_sw, pl2_se, pl2_ne,1, pl2_turn_count)
+      pl1_speed = control_players (pl1, pl1_flame_spr, 0, pl1_turn_count)
+      if (not s_singleplayer) then
+        pl2_speed = control_players (pl2, pl2_flame_spr, 1, pl2_turn_count)
       end
     end
     if (is_singleplayer) then
       singleplayer()
     end
-    move_player (pl1, pl1_flame, pl1_flame_spr,pl1_speed)
-    move_player (pl2, pl2_flame, pl2_flame_spr,pl2_speed)
+    move_player (pl1, pl1_flame, pl1_flame_spr,pl1_speed, pl1_n, pl1_ne, pl1_e, pl1_se, pl1_s, pl1_sw, pl1_w, pl1_nw)
+    move_player (pl2, pl2_flame, pl2_flame_spr,pl2_speed, pl2_n, pl2_ne, pl2_e, pl2_se, pl2_s, pl2_sw, pl2_w, pl2_nw)
     move_bullets ()
-    if(war == "ww1") then
+    if(battle == 1) then
       move_balloons()
       move_bombs(bomb_ww1_spr)
      
-    elseif (war == "ww2") then 
+    elseif (battle == 2) then 
       move_mortars()
       move_bombers()
       move_bombs(bomb_ww2_spr)
@@ -361,11 +363,13 @@ end
 function _draw()
   cls()
   map(0,0,0,0,16,16)
-  foreach(actors,draw_actor)
-  if (game_over) then
+  if (not get_ready) then
+    foreach(actors,draw_actor)
+  end
+  if (game_over and not get_ready) then
     game_over_counter = game_over_counter + 1
   	if (pl2 and pl2.damage == game_over_damage) then
-      print ("green won!!!",45, 10, 9)
+      print ("Green is triumphant!!!",16, 20, 9)
       del (actors, pl2_flame)
       del (actors, pl2)
       pl2_rubble1.x = pl2_flame.x
@@ -382,7 +386,7 @@ function _draw()
       draw_actor(pl2_rubble1)
       draw_actor(pl2_rubble2)
     elseif (pl1 and pl1.damage == game_over_damage) then 
-      print ("grey won!!!", 45, 10, 5)
+      print ("victory for grey!!!", 16, 20, 9)
       del (actors, pl1_flame)
       del (actors, pl1)
       pl1_rubble1.x = pl1_flame.x
@@ -399,27 +403,35 @@ function _draw()
       draw_actor(pl1_rubble1)
       draw_actor(pl1_rubble2)
     end
-    print (" up:single player", 12, 20, 5) 
-    print (" down:multiplayer player", 12, 30, 5) 
+    print (" up:single player", 12, 30, 5) 
+    print (" down:multiplayer player", 12, 40, 5) 
+  end
+  if ((is_demo or game_over) and not get_ready) then
     if (btn (3) or btn (3,1)) then 
       is_singleplayer = false
+      battle = 1
       is_demo = false
-      setup() 
+      get_ready = true
+      get_ready_counter = 0
     elseif (btn (2) or btn(2,1)) then
       is_singleplayer = true
+      battle = 1
       is_demo = false
-      setup()
+      get_ready = true
+      get_ready_counter = 0
     elseif (game_over_counter > 200) then
+      game_over_counter = 0
       is_singleplayer = false
-      local war_nbr = ceil(rnd(3))
-      if (war_nbr == 1) then
-        war = "ww1"
-      elseif (war_nbr == 2) then
-        war = "ww2"
-      else
-        war = "ww3"
-      end 
+      battle = ceil(rnd(3))
       is_demo = true
+      setup()
+    end
+  end
+  if (get_ready) then
+    get_ready_counter = get_ready_counter + 1
+    print ("DEATH OR GLORY!!!", 30, 40, 5)
+    if  (get_ready_counter > 50) then
+      get_ready = false
       setup()
     end
   end
@@ -706,41 +718,33 @@ function move_missiles()
   end
 end
 
-function control_players(pl, pl_flame_spr, pl_n, pl_s, pl_w, pl_e, pl_nw, pl_sw, pl_se, pl_ne,pl_index, pl_turn_count)
+function control_players(pl, pl_flame_spr, pl_index, pl_turn_count)
   -- left
   if (btn(0,pl_index) and pl.x > min_x and pl.turn_count > 10 and pl.spr != pl_flame_spr ) then 
     pl.is_pressed = true
     pl.turn_count = 0
     if(pl.direction == "n") then 
-      pl.spr = pl_nw 
       pl.direction = "nw" 
 
     elseif(pl.direction == "nw") then 
-      pl.spr = pl_w 
       pl.direction = "w" 
     
     elseif(pl.direction == "w") then 
-      pl.spr = pl_sw 
       pl.direction = "sw" 
        
     elseif (pl.direction == "sw") then 
-      pl.spr = pl_s 
       pl.direction = "s" 
     
     elseif (pl.direction == "s") then 
-      pl.spr = pl_se 
       pl.direction = "se" 
        
     elseif(pl.direction == "se") then 
-      pl.spr = pl_e 
       pl.direction = "e" 
       
     elseif(pl.direction == "e") then 
-      pl.spr = pl_ne 
       pl.direction = "ne" 
 
     elseif(pl.direction == "ne") then 
-      pl.spr = pl_n 
       pl.direction = "n" 
     end
 
@@ -749,65 +753,34 @@ function control_players(pl, pl_flame_spr, pl_n, pl_s, pl_w, pl_e, pl_nw, pl_sw,
     pl.is_pressed = true
     pl.turn_count = 0
     if(pl.direction == "n") then 
-      pl.spr = pl_ne
       pl.direction = "ne" 
 
     elseif(pl.direction == "ne") then 
-      pl.spr = pl_e 
       pl.direction = "e" 
     
     elseif(pl.direction == "e") then 
-      pl.spr = pl_se 
       pl.direction = "se" 
        
     elseif (pl.direction == "se") then 
-      pl.spr = pl_s 
       pl.direction = "s" 
     
     elseif (pl.direction == "s") then 
-      pl.spr = pl_sw
       pl.direction = "sw" 
        
     elseif(pl.direction == "sw") then 
-      pl.spr = pl_w 
       pl.direction = "w" 
       
     elseif(pl.direction == "w") then 
-      pl.spr = pl_nw 
       pl.direction = "nw" 
 
     elseif(pl.direction == "nw") then 
-      pl.spr = pl_n 
       pl.direction = "n" 
     end
 
   --bullet  
 	elseif (btn(4,pl_index) and not pl.is_pressed and pl.spr != pl_flame_spr) then
 		pl.is_pressed = true
-    if (pl.spr == pl_nw) then
-      make_actor(pl.x-.6,pl.y-.6,bullet_spr_horiz,"nw") 
-    end
-    if (pl.spr == pl_sw) then
-			make_actor(pl.x-.6,pl.y+.6,bullet_spr_horiz,"sw")
-    end
-    if (pl.spr == pl_se) then
-			make_actor(pl.x+.6,pl.y+.6,bullet_spr_horiz,"se")
-    end
-    if (pl.spr == pl_ne) then
-			make_actor(pl.x+.6,pl.y-.6,bullet_spr_horiz,"ne")
-    end      
-    if (pl.spr == pl_n) then
-			make_actor(pl.x,pl.y-.6,bullet_spr_vert,"n")
-    end	
-		if (pl.spr == pl_s) then
-			make_actor(pl.x,pl.y+.6,bullet_spr_vert,"s")
- 		end	    	     	    		 
-		if (pl.spr == pl_e) then
-			make_actor(pl.x+.6,pl.y,bullet_spr_horiz,"e")
- 		end	    	     	    		 
-		if (pl.spr == pl_w) then
-      make_actor(pl.x-.6,pl.y,bullet_spr_horiz,"w")
-    end
+    fire_bullet(pl)
   end	
 
   if (pl.turn_count <= 10) then
@@ -827,7 +800,27 @@ function control_players(pl, pl_flame_spr, pl_n, pl_s, pl_w, pl_e, pl_nw, pl_sw,
   end
 end
 
-function move_player(pl,  pl_flame, pl_flame_spr,pl_speed)    
+function fire_bullet (pl)
+  if (pl.direction == "nw") then
+    make_actor(pl.x-.6,pl.y-.6,bullet_spr_horiz,"nw") 
+  elseif (pl.direction == "sw") then
+    make_actor(pl.x-.6,pl.y+.6,bullet_spr_horiz,"sw")
+  elseif (pl.direction == "se") then
+    make_actor(pl.x+.6,pl.y+.6,bullet_spr_horiz,"se")
+  elseif (pl.direction == "ne") then
+    make_actor(pl.x+.6,pl.y-.6,bullet_spr_horiz,"ne")
+  elseif (pl.direction == "n") then
+    make_actor(pl.x,pl.y-.6,bullet_spr_vert,"n")
+  elseif (pl.direction == "s") then
+    make_actor(pl.x,pl.y+.6,bullet_spr_vert,"s")
+  elseif (pl.direction == "e") then
+    make_actor(pl.x+.6,pl.y,bullet_spr_horiz,"e")
+  elseif (pl.direction == "w") then
+    make_actor(pl.x-.6,pl.y,bullet_spr_horiz,"w")
+  end
+end
+
+function move_player(pl,  pl_flame, pl_flame_spr,pl_speed, pl_n, pl_ne, pl_e, pl_se, pl_s, pl_sw, pl_w, pl_nw)    
   if (pl_flame) then
     pl.y += speed
     pl_flame.y += speed
@@ -837,31 +830,40 @@ function move_player(pl,  pl_flame, pl_flame_spr,pl_speed)
       pl_flame.spr = flame_tail_spr1
     end
     if (pl_flame.y > max_y) then
-      game_over = true  
+      game_over = true 
+      game_over_counter = 0 
     end
   else
     if(pl.direction == "nw") then 
+      pl.spr = pl_nw
       pl.speed_y = -pl_speed
       pl.speed_x = -pl_speed
-    elseif(pl.direction == "w") then 
+    elseif(pl.direction == "w") then
+      pl.spr = pl_w 
       pl.speed_y =  0	 
       pl.speed_x = -pl_speed
-    elseif(pl.direction == "sw") then 
+    elseif(pl.direction == "sw") then
+      pl.spr = pl_sw 
       pl.speed_y =  pl_speed 	 
       pl.speed_x = -pl_speed
-    elseif (pl.direction == "s") then 
+    elseif (pl.direction == "s") then
+      pl.spr = pl_s 
       pl.speed_y =  pl_speed	 
       pl.speed_x = 0
-    elseif (pl.direction == "se") then 
+    elseif (pl.direction == "se") then
+      pl.spr = pl_se
       pl.speed_y =  pl_speed 	 
       pl.speed_x = pl_speed
     elseif(pl.direction == "e") then 
+      pl.spr = pl_e
       pl.speed_y = 0 	 
       pl.speed_x = pl_speed
     elseif(pl.direction == "ne") then 
+      pl.spr = pl_ne
       pl.speed_y = -pl_speed 	 
       pl.speed_x = pl_speed
-    elseif(pl.direction == "n") then 
+    elseif(pl.direction == "n") then
+      pl.spr = pl_n 
       pl.speed_y = -pl_speed	 
       pl.speed_x = 0 
     end 
@@ -870,188 +872,27 @@ function move_player(pl,  pl_flame, pl_flame_spr,pl_speed)
   end 
 end
 
+function is_in_range()
+  return false;
+end
 
+function optimal_direction()
+  return "n"
+end
 
 function singleplayer()
 
   if (not is_crashing) then
-
-    if (turn_counter == turn_max) then
-      turn_counter = 0
-      turn_max = flr(rnd(10))
-      rand_direction = flr(rnd(2))
-
-
-      if (pl2.direction) == "n" then
-        if (pl1.direction) == "nw" then
-          pl2.direction = "ne"
-          pl2.spr = pl2_ne 
-        elseif (pl1.direction == "ne") then
-          pl2.direction = "nw"
-          pl2.spr = pl2_nw
-        else
-          if (rand_direction == 0) then
-            pl2.direction = "nw"
-            pl2.spr = pl2_nw  
-          else
-            pl2.direction = "ne"
-            pl2.spr = pl2_ne  
-          end
-        end
-      end
-      if (pl2.direction) == "e" then
-        if (pl1.direction) == "se" then
-          pl2.direction = "ne"
-          pl2.spr = pl2_ne 
-        elseif (pl1.direction == "ne") then
-          pl2.direction = "se"
-          pl2.spr = pl2_se 
-        else
-          if (rand_direction == 0) then
-            pl2.direction = "ne"
-            pl2.spr = pl2_ne 
-          else
-            pl2.direction = "se"
-            pl2.spr = pl2_se 
-          end
-        end
-      end
-      if (pl2.direction) == "s" then
-        if (pl1.direction) == "se" then
-          pl2.direction = "sw"
-          pl2.spr = pl2_sw 
-        elseif (pl1.direction == "sw") then
-          pl2.direction = "se"
-          pl2.spr = pl2_se 
-        else
-          if (rand_direction == 0) then
-            pl2.direction = "sw"
-            pl2.spr = pl2_sw 
-          else
-            pl2.direction = "se"
-            pl2.spr = pl2_se 
-          end
-        end
-      end
-      if (pl2.direction) == "w" then
-        if (pl1.direction) == "sw" then
-          pl2.direction = "nw"
-          pl2.spr = pl2_nw 
-        elseif (pl1.direction == "nw") then
-          pl2.direction = "sw"
-          pl2.spr = pl2_sw 
-        else
-          if (rand_direction == 0) then
-            pl2.direction = "nw"
-            pl2.spr = pl2_ne 
-          else
-            pl2.direction = "sw"
-            pl2.spr = pl2_se 
-          end
-        end
-      end
-      if (pl2.direction) == "nw" then
-        if (pl1.direction) == "w" then
-          pl2.direction = "n"
-          pl2.spr = pl2_n
-        elseif (pl1.direction == "n") then
-          pl2.direction = "w"
-          pl2.spr = pl2_w 
-        else
-          if (rand_direction == 0) then
-            pl2.direction = "w"
-            pl2.spr = pl2_w 
-          else
-            pl2.direction = "sw"
-            pl2.spr = pl2_sw 
-          end
-        end
-      end
-      if (pl2.direction) == "ne" then
-        if (pl1.direction) == "n" then
-          pl2.direction = "e"
-          pl2.spr = pl2_e 
-        elseif (pl1.direction == "e") then
-          pl2.direction = "n"
-          pl2.spr = pl2_n 
-        else
-          if (rand_direction == 0) then
-            pl2.direction = "n"
-            pl2.spr = pl2_n 
-          else
-            pl2.direction = "e"
-            pl2.spr = pl2_e 
-          end
-        end
-      end
-      if (pl2.direction) == "se" then
-        if (pl1.direction) == "s" then
-          pl2.direction = "e"
-          pl2.spr = pl2_e 
-        elseif (pl1.direction == "e") then
-          pl2.direction = "s"
-          pl2.spr = pl2_se 
-        else
-          if (rand_direction == 0) then
-            pl2.direction = "e"
-            pl2.spr = pl2_e 
-          else
-            pl2.direction = "s"
-            pl2.spr = pl2_s 
-          end
-        end
-      end
-      if (pl2.direction) == "sw" then
-        if (pl1.direction) == "s" then
-          pl2.direction = "w"
-          pl2.spr = pl2_w 
-        elseif (pl1.direction == "w") then
-          pl2.direction = "s"
-          pl2.spr = pl2_se 
-        else
-          if (rand_direction == 0) then
-            pl2.direction = "w"
-            pl2.spr = pl2_w 
-          else
-            pl2.direction = "s"
-            pl2.spr = pl2_s 
-          end
-        end
-      end
-    end 
+    local optimalDirection = findOptimalDirection()
+    if (optimal_direction != pl2.direction) then
+      is_turning = true
+      pl2.direction = optimal_direction
+    end
   end  
      
-    
-
-  turn_counter = turn_counter + 1
-  
   --make pl2 fire
-  if (is_turning == false and pl2.spr != pl2_flame_spr) then
-    if (pl2.spr == pl2_nw) then
-      make_actor(pl2.x-.6,pl2.y-.6,bullet_spr_horiz,"nw")
-    end
-    if (pl2.spr == pl2_sw) then
-      make_actor(pl2.x-.6,pl2.y+.6,bullet_spr_horiz,"sw")
-    end
-    if (pl2.spr == pl2_se) then
-      make_actor(pl2.x+.6,pl2.y+.6,bullet_spr_horiz,"se")
-    end
-    if (pl2.spr == pl2_ne) then
-      make_actor(pl2.x+.6,pl2.y-.6,bullet_spr_horiz,"ne")
-    end      
-    if (pl2.spr == pl2_n) then
-      make_actor(pl2.x,pl2.y-.6,bullet_spr_vert,"n")
-    end	
-    if (pl2.spr == pl2_s) then
-        make_actor(pl2.x,pl2.y+.6,bullet_spr_vert,"s")
-       end	    	     	    		 
-    if (pl2.spr == pl2_e) then
-        make_actor(pl2.x+.6,pl2.y,bullet_spr_horiz,"e")
-       end	    	     	    		 
-    if (pl2.spr == pl2_w) then
-        make_actor(pl2.x-.6,pl2.y,bullet_spr_horiz,"w")
-    end
-      	
+  if (is_turning == false and pl2.spr != pl2_flame_spr and is_in_range()) then
+    fire_bullet(pl2)	
   end
 end
 
@@ -1154,38 +995,38 @@ __gfx__
 40505050005050505030303000303030000000000000000000000000000055500000000000000000000000000000000040505850005058505030383000303830
 04000505550005050500030333000303000000000000000000000000000005000000000000000000000000000000000004000585550005850500038333000383
 00400050050000500050003003000030000000000000000000000000000000000000000000000000000000000000000000400050050000500050003003000030
-05550000000055500333000000003330855580000008555083338000000833380000000008838389000002222222222222200000000000000000000000000000
-00555000000555000033300000033300085558000085558008333800008333800000000003983883000022222222222222220000000000222222222222000000
-5005550000555005300333000033300350855588885558053083338888333803000000000338383300022aa2aa2aa2aa2aa220000002022aaaaaaaaaa2202000
-05555665566555500333366336633330055556655665555003333663366333300500005003333333002222222222222222222200000222222222222222222000
-50055500005550053003330000333003508555888855580530833388883338030000000000333330022222222222222222222220002200002000000200022000
-005550000005550000333000000333000855580000855580083338000083338000000000000363002200000022222222000000220022000002a0a02000022000
-0555000000005550033300000000333085558000000855508333800000083338000000000000600022000000000000000000002202222000000a0a0000222200
-00000000000000000000000000000000000000000000000000000000000000000000000000003000222200000000000000002222000000000000000000000000
+05550000000055500333000000003330855580000008555083338000000833380000000008838389000000000000000000000000000000000000000000000000
+00555000000555000033300000033300085558000085558008333800008333800000000003983883000000000000000000000000000000222222222222000000
+500555000055500530033300003330035085558888555805308333888833380300000000033838330000000000000000000000000002022aaaaaaaaaa2202000
+05555665566555500333366336633330055556655665555003333663366333300500005003333333000000000000000000000000000222222222222222222000
+50055500005550053003330000333003508555888855580530833388883338030000000000333330000000000000000000000000002200002000000200022000
+005550000005550000333000000333000855580000855580083338000083338000000000000363000000000000000000000000000022000002a0a02000022000
+0555000000005550033300000000333085558000000855508333800000083338000000000000600000000000000000000000000002222000000a0a0000222200
+00000000000000000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000000
 00005500000000000000330000000000000855800000000000083380000000000000000008858599000000000000000000000000000000000000000000000000
-0050550005000000003033000300000000585580058888880038338003888888000050000589588500000000200000020000000000000000dddddddd00000000
-05505500006555550330330000633333055855800865555503383380086333330000000005585855000000000200002000000000000000008888888800000000
-0005550000555555000333000033333388855580085555558883338008333333000000000555555500000000002222000000000000000000dddddddd00000000
-5555550000555000333333000033300055555580085558883333338008333888000000000055555000000000200000020000000000000000d000000d00000000
-55555600005505503333360000330330555556800855855033333680083383300000000000056500000000000200002000000000000000000d0b0bd000000000
-000000500055050000000030003303008888885008558500888888300833830000005000000060000000000000222200000000000000000000b0b00000000000
+00505500050000000030330003000000005855800588888800383380038888880000500005895885000000000000000000000000000000000000000000000000
+05505500006555550330330000633333055855800865555503383380086333330000000005585855000000000000000000000000000000000000000000000000
+00055500005555550003330000333333888555800855555588833380083333330000000005555555000000000000000000000000000000000000000000000000
+55555500005550003333330000333000555555800855588833333380083338880000000000555550000000000000000000000000000000000000000000000000
+55555600005505503333360000330330555556800855855033333680083383300000000000056500000000000000000000000000000000000000000000000000
+00000050005505000000003000330300888888500855850088888830083383000000500000006000000000000000000000000000000000000000000000000000
 00000000005500000000000000330000000000000855800000000000083380000000000000005000000000000000000000000000000000000000000000000000
-00050500000050000003030000003000080505080008580008030308000838000005000000000000000000007777777700777700000000000000000000000000
-0500500500006000030030030000600005805085000868000380308300086800000500000000000000000000777777770077770000000000b000000b00000000
-05505055000565000330303300036300055858550085658003383833008363800055500000000000000000007777777700777700000000000b0000b000000000
-055555550055555003333333003333300555555508555558033333330833333800050000000000000000000077777777077777700000000000bbbb0000000000
-0055555005555555003333300333333308555558055555550833333803333333000500000000000000000000777777777777777700000000b000000b00000000
-00056500055050550003630003303033008565800558585500836380033838330058500000000000000000007777777777777777000000000b0000b000000000
-000060000500500500006000030030030008680005805085000868000380308305989500000000000000000077777777077777700000000000bbbb0000000000
-00005000000505000000300000030300000858000805050800083800080303080509050000000000000000007777777700777700000000000000000000000000
-005500000000000000330000000000000855800000000000083380000000000080800888888008080000000000aaaa0000000000000b00000000b00000000000
-005505000000005000330300000000300855850088888850083383008888883005000050050000500000000000aaaa0000000000000b00000000b00000000000
-005505505555560000330330333336000855855055555680083383303333368055500555555005550000000000aaaa00000000000000b000000b000000000000
-005550005555550000333000333333000855588855555580083338883333338000000000000000000000000000aaaa0000000000b0000b0000b0000b00000000
-005555550005550000333333000333000855555588855580083333338883338000000000000000000000000000aaaa0000000000b00000bbbb00000b00000000
-006555550550550000633333033033000865555505585580086333330338338000888000008080000000000000aaaa00000000000b000000000000b000000000
-050000000050550003000000003033000588888800585580038888880038338000050000000500000000000000aaaa000000000000b0000000000b0000000000
-000000000000550000000000000033000000000000085580000000000008338000555000005550000000000000aaaa0000000000000bb000000bb00000000000
+00050500000050000003030000003000080505080008580008030308000838000005000000000000000000000000000000000000000000000000000000000000
+05005005000060000300300300006000058050850008680003803083000868000005000000000000000000000000000000000000000000000000000000000000
+05505055000565000330303300036300055858550085658003383833008363800055500000000000000000000000000000000000000000000000000000000000
+05555555005555500333333300333330055555550855555803333333083333380005000000000000000000000000000000000000000000000000000000000000
+00555550055555550033333003333333085555580555555508333338033333330005000000000000000000000000000000000000000000000000000000000000
+00056500055050550003630003303033008565800558585500836380033838330058500000000000000000000000000000000000000000000000000000000000
+00006000050050050000600003003003000868000580508500086800038030830598950000000000000000000000000000000000000000000000000000000000
+00005000000505000000300000030300000858000805050800083800080303080509050000000000000000000000000000000000000000000000000000000000
+005500000000000000330000000000000855800000000000083380000000000000000000000000000000000000aaaa0000000000000000000000000000000000
+005505000000005000330300000000300855850088888850083383008888883000000000000000000000000000aaaa0000000000000000000000000000000000
+005505505555560000330330333336000855855055555680083383303333368000000000000000000000000000aaaa0000000000000000000000000000000000
+005550005555550000333000333333000855588855555580083338883333338000000000000000000000000000aaaa0000000000000000000000000000000000
+005555550005550000333333000333000855555588855580083333338883338000000000000000000000000000aaaa0000000000000000000000000000000000
+006555550550550000633333033033000865555505585580086333330338338000000000000000000000000000aaaa0000000000000000000000000000000000
+050000000050550003000000003033000588888800585580038888880038338000000000000000000000000000aaaa0000000000000000000000000000000000
+000000000000550000000000000033000000000000085580000000000008338000000000000000000000000000aaaa0000000000000000000000000000000000
 __gff__
 0000000000002000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000
 0000000001000000000000000000000000000000010000000000000000000000010101010000000000000000010101010000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
