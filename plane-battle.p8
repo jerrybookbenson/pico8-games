@@ -7,7 +7,7 @@ __lua__
 function _init()
   game_over = true
   battle_over = true
-  is_singleplayer = true
+  is_single_player = true
   battle = 1
   game_over_counter = 0
   is_demo = false
@@ -239,7 +239,7 @@ function setup()
   pl1_flame = nil
   pl2_flame = nil
   
-  --only for singleplayer
+  --only for single_player
   is_turning = false 
   
   turn_max = 0
@@ -276,15 +276,11 @@ function _update()
     
     if (not is_demo) then
       pl1_speed = control_players (pl1, pl1_flame_spr, 0, pl1_turn_count)
-      if (not s_singleplayer) then
+      if (not is_single_player) then
         pl2_speed = control_players (pl2, pl2_flame_spr, 1, pl2_turn_count)
       end
     end
-    if (is_singleplayer) then
-      singleplayer()
-    end
-    move_player (pl1, pl1_flame, pl1_flame_spr,pl1_speed, pl1_n, pl1_ne, pl1_e, pl1_se, pl1_s, pl1_sw, pl1_w, pl1_nw)
-    move_player (pl2, pl2_flame, pl2_flame_spr,pl2_speed, pl2_n, pl2_ne, pl2_e, pl2_se, pl2_s, pl2_sw, pl2_w, pl2_nw)
+    
     move_bullets ()
     if(battle == 1) then
       move_balloons()
@@ -298,6 +294,15 @@ function _update()
       move_ufo()
       move_missiles()
     end
+    
+    -- move bullets and bombs before moving single player so ai can avoid them
+    if (is_single_player) then
+      pl2_speed = single_player()
+    end
+
+    move_player (pl1, pl1_flame, pl1_flame_spr,pl1_speed, pl1_n, pl1_ne, pl1_e, pl1_se, pl1_s, pl1_sw, pl1_w, pl1_nw)
+    move_player (pl2, pl2_flame, pl2_flame_spr,pl2_speed, pl2_n, pl2_ne, pl2_e, pl2_se, pl2_s, pl2_sw, pl2_w, pl2_nw)
+    
     check_collision(pl1, pl1_flame_spr)
     check_collision(pl2, pl2_flame_spr)
   
@@ -318,9 +323,13 @@ function check_boundaries (actor)
   end  
 end
 
+function is_ordanance(actor)
+  return actor.spr == missle_spr or actor.spr == laser_spr or actor.spr == bullet_spr_horiz or actor.spr == bullet_spr_vert or actor.spr == mortar_spr or actor.spr == explosion_spr or is_exploding_spr(actor.spr) or actor.spr == bomb_ww1_spr or actor.spr == bomb_ww2_spr
+end
+
 function check_collision(pl, flame_spr, flame)
   for actor in all(actors) do
-		if (actor.spr == missle_spr or actor.spr == laser_spr or actor.spr == bullet_spr_horiz or actor.spr == bullet_spr_vert or actor.spr == mortar_spr or actor.spr == explosion_spr or is_exploding_spr(actor.spr) or actor.spr == bomb_ww1_spr or actor.spr == bomb_ww2_spr) then
+		if (is_ordanance(actor)) then
       if (actor.x >  pl.x -.7  
         and actor.x < pl.x +.7  
         and actor.y > pl.y - .7  
@@ -408,20 +417,20 @@ function _draw()
   end
   if ((is_demo or game_over) and not get_ready) then
     if (btn (3) or btn (3,1)) then 
-      is_singleplayer = false
+      is_single_player = false
       battle = 1
       is_demo = false
       get_ready = true
       get_ready_counter = 0
     elseif (btn (2) or btn(2,1)) then
-      is_singleplayer = true
+      is_single_player = true
       battle = 1
       is_demo = false
       get_ready = true
       get_ready_counter = 0
     elseif (game_over_counter > 200) then
       game_over_counter = 0
-      is_singleplayer = false
+      is_single_player = false
       battle = ceil(rnd(3))
       is_demo = true
       setup()
@@ -872,18 +881,84 @@ function move_player(pl,  pl_flame, pl_flame_spr,pl_speed, pl_n, pl_ne, pl_e, pl
   end 
 end
 
+
 function is_in_range()
-  return false;
+  return false
 end
 
-function optimal_direction()
-  return "n"
+function is_ordanance_coordinates (x, y)
+  for actor in all(actors) do
+    if (actor.x >  x -.7  
+      and actor.x < x +.7  
+      and actor.y > y - .7  
+      and actor.y <  y +.7) then
+      return true
+    end
+  end
 end
 
-function singleplayer()
+function is_ordanance_location (direction) 
+  if (direction == "n") then
+    if (is_ordanance_coordinates (pl2.x, pl2.y + pl2_speed)) then 
+      return "n"
+    end
+  elseif (direction == "ne") then
+    if (is_ordanance_coordinates (pl2.x + pl2.speed, pl2.y + pl2_speed)) then
+      return "ne"
+    end
+  end
+end
 
-  if (not is_crashing) then
-    local optimalDirection = findOptimalDirection()
+
+function find_optimal_direction(possible_direction1, possible_direction2, possible_direction3)
+  if (not is_ordanance_location (possible_direction2)) then
+    return possible_direction2
+  elseif (not is_ordanance (possible_direction1)) then
+    return possible_direction1
+  else
+    return possible_direction3
+  end
+end
+
+function single_player()
+
+  if (not is_crashing and pl2.turn_count > 10) then
+    pl2.turn_count = 0
+    if (pl2.direction == "n") then
+      possible_direction1 = "nw"
+      possible_direction2 = "n"
+      possible_direction3 = "ne"
+    elseif (pl2.direction == "ne") then
+      possible_direction1 = "n"
+      possible_direction2 = "ne"
+      possible_direction3 = "e"
+    elseif (pl2.direction == "e") then
+      possible_direction1 = "ne"
+      possible_direction2 = "e"
+      possible_direction3 = "se"
+    elseif (pl2.direction == "se") then
+      possible_direction1 = "e"
+      possible_direction2 = "se"
+      possible_direction3 = "s"
+    elseif (pl2.direction == "s") then
+      possible_direction1 = "se"
+      possible_direction2 = "s"
+      possible_direction3 = "sw"
+    elseif (pl2.direction == "sw") then
+      possible_direction1 = "s"
+      possible_direction2 = "sw"
+      possible_direction3 = "w"
+    elseif (pl2.direction == "w") then
+      possible_direction1 = "sw"
+      possible_direction2 = "w"
+      possible_direction3 = "nw"
+    elseif (pl2.direction == "nw") then
+      possible_direction1 = "w"
+      possible_direction2 = "nw"
+      possible_direction3 = "n"
+    end
+
+    local optimal_direction = find_optimal_direction(possible_direction1, possible_direction2, possible_direction3)
     if (optimal_direction != pl2.direction) then
       is_turning = true
       pl2.direction = optimal_direction
@@ -891,8 +966,12 @@ function singleplayer()
   end  
      
   --make pl2 fire
-  if (is_turning == false and pl2.spr != pl2_flame_spr and is_in_range()) then
+  if (not is_crashing and is_turning == false and pl2.spr and is_in_range()) then
     fire_bullet(pl2)	
+  end
+
+  if (pl2.turn_count <= 10) then
+    pl2.turn_count = pl2.turn_count + 1
   end
 end
 
