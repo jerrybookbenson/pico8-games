@@ -3,7 +3,7 @@ version 18
 __lua__
 --plane-battle 
 --by jerry benson
---this is a cool & fun game
+
 function _init()
   game_over = true
   battle_over = true
@@ -13,6 +13,10 @@ function _init()
   is_demo = false
   get_ready = false
   get_ready_counter = 0
+  battle_over = false
+  battle_over_counter = 0
+  pl1_battles = 0
+  pl2_battles = 0
 end
 
 
@@ -213,7 +217,7 @@ function setup()
   explosion_se_spr = 85
   
 	game_over = false
-  game_over_damage = 5 
+  battle_over_damage = 5 
  
   
 	pl1_direction = "left"
@@ -267,7 +271,7 @@ function make_actor(x, y, spr, d,  speed_y , speed_x,explosion_y )
 end
 
 function _update()
-  if (not game_over) then
+  if (not game_over and not battle_over) then
     --switch back to normal any players that were hit in last loop and show hit sprite
     switch_back(pl1)
     switch_back(pl2)
@@ -280,7 +284,7 @@ function _update()
         pl2_speed = control_players (pl2, pl2_flame_spr, 1, pl2_turn_count)
       end
     end
-    
+
     move_bullets ()
     if(battle == 1) then
       move_balloons()
@@ -347,8 +351,8 @@ function check_collision(pl, flame_spr, flame)
         if (not is_crashing) then
           pl.damage = pl.damage + 1
           switch(pl) 	
-          if (pl.damage == game_over_damage or actor.spr == missle_spr or actor.spr == laser_spr or actor.spr == explosion_spr or is_exploding_spr(actor.spr)) then
-            pl.damage = game_over_damage
+          if (pl.damage == battle_over_damage or actor.spr == missle_spr or actor.spr == laser_spr or actor.spr == explosion_spr or is_exploding_spr(actor.spr)) then
+            pl.damage = battle_over_damage
             is_crashing = true;
             pl.spr = flame_spr
             if (pl == pl1) then
@@ -376,8 +380,10 @@ function _draw()
     foreach(actors,draw_actor)
   end
   if (game_over and not get_ready) then
+    pl1_battles = 0
+    pl2_battles = 0
     game_over_counter = game_over_counter + 1
-  	if (pl2 and pl2.damage == game_over_damage) then
+  	if (pl2 and pl2.damage == battle_over_damage) then
       print ("Green is triumphant!!!",16, 20, 9)
       del (actors, pl2_flame)
       del (actors, pl2)
@@ -394,7 +400,7 @@ function _draw()
       end
       draw_actor(pl2_rubble1)
       draw_actor(pl2_rubble2)
-    elseif (pl1 and pl1.damage == game_over_damage) then 
+    elseif (pl1 and pl1.damage == battle_over_damage) then 
       print ("victory for grey!!!", 16, 20, 9)
       del (actors, pl1_flame)
       del (actors, pl1)
@@ -415,6 +421,60 @@ function _draw()
     print (" up:single player", 12, 30, 5) 
     print (" down:multiplayer player", 12, 40, 5) 
   end
+
+
+
+  if (battle_over and not get_ready) then
+    battle_over_counter = battle_over_counter + 1
+  	if (pl2 and pl2.damage == battle_over_damage) then
+      del (actors, pl2_flame)
+      del (actors, pl2)
+      pl2_rubble1.x = pl2_flame.x
+      pl2_rubble1.y = pl2_flame.y
+      pl2_rubble2.x = pl2_flame.x + 1
+      pl2_rubble2.y = pl2_flame.y
+      if (pl2_rubble1.spr == pl2_rubble_spr1) then
+        pl2_rubble1.spr = pl2_rubble_spr2
+        pl2_rubble2.spr = pl2_rubble_spr2 + 1
+      else
+        pl2_rubble1.spr = pl2_rubble_spr1
+        pl2_rubble2.spr = pl2_rubble_spr1 + 1
+      end
+      draw_actor(pl2_rubble1)
+      draw_actor(pl2_rubble2)
+      pl1_battles = pl1_battles + 1
+    elseif (pl1 and pl1.damage == battle_over_damage) then 
+      del (actors, pl1_flame)
+      del (actors, pl1)
+      pl1_rubble1.x = pl1_flame.x
+      pl1_rubble1.y = pl1_flame.y
+      pl1_rubble2.x = pl1_flame.x + 1
+      pl1_rubble2.y = pl1_flame.y
+      if (pl1_rubble1.spr == pl1_rubble_spr1) then
+        pl1_rubble1.spr = pl1_rubble_spr2
+        pl1_rubble2.spr = pl1_rubble_spr2 + 1
+      else
+        pl1_rubble1.spr = pl1_rubble_spr1
+        pl1_rubble2.spr = pl1_rubble_spr1 + 1
+      end
+      draw_actor(pl1_rubble1)
+      draw_actor(pl1_rubble2)
+      pl2_battles = pl2_battles + 1
+    end
+    if(pl1_battles == 2 or pl2_battles == 2) then
+      game_over = true 
+      battle_over = false  
+    end
+    if (not game_over) then
+      battle = battle + 1
+      battle_over = false
+      is_demo = false
+      setup()
+    end
+  end
+
+
+
   if ((is_demo or game_over) and not get_ready) then
     if (btn (3) or btn (3,1)) then 
       is_single_player = false
@@ -839,8 +899,8 @@ function move_player(pl,  pl_flame, pl_flame_spr,pl_speed, pl_n, pl_ne, pl_e, pl
       pl_flame.spr = flame_tail_spr1
     end
     if (pl_flame.y > max_y) then
-      game_over = true 
-      game_over_counter = 0 
+      battle_over = true 
+      battle_over_counter = 0 
     end
   else
     if(pl.direction == "nw") then 
