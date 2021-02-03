@@ -84,8 +84,10 @@ function setup()
     balloon_sw_spr = 153
     balloon_se_spr = 154
 
-    bullet_spr_horiz = 164 
-    bullet_spr_vert = 164
+    pl1_bullet_spr_horiz = 164 
+    pl1_bullet_spr_vert = 164
+    pl2_bullet_spr_horiz = 180
+    pl2_bullet_spr_vert = 180
     
     bomb_ww1_spr = 183
   elseif (battle == 2) then
@@ -143,8 +145,10 @@ function setup()
     german_bomber_se_2 = 93
    
     
-    bullet_spr_horiz = 70
-    bullet_spr_vert = 86
+    pl1_bullet_spr_horiz = 70
+    pl1_bullet_spr_vert = 86
+    pl2_bullet_spr_horiz = 78 
+    pl2_bullet_spr_vert = 94
 
     mortar_spr = 116
 
@@ -189,8 +193,10 @@ function setup()
     pl2_w_h = 197
     pl2_nw_h = 213
 
-    bullet_spr_horiz = 216 
-    bullet_spr_vert = 200
+    pl1_bullet_spr_horiz = 216 
+    pl1_bullet_spr_vert = 200
+    pl2_bullet_spr_horiz = 249 
+    pl2_bullet_spr_vert = 233
 
     ufo_spr = 205
     ufo_speed = other_speed
@@ -243,8 +249,6 @@ function setup()
   pl1_flame = nil
   pl2_flame = nil
   
-  --only for single_player
-  is_turning = false 
   
   turn_max = 0
   turn_counter = 0
@@ -279,10 +283,14 @@ function _update()
     check_boundaries(actor)
     
     if (not is_demo) then
-      pl1_speed = control_players (pl1, pl1_flame_spr, 0, pl1_turn_count)
+      pl1_speed = control_players (pl1, pl1_flame_spr, 0, pl1_turn_count, pl1_bullet_spr_horiz, pl1_bullet_spr_vert)
       if (not is_single_player) then
-        pl2_speed = control_players (pl2, pl2_flame_spr, 1, pl2_turn_count)
+        pl2_speed = control_players (pl2, pl2_flame_spr, 1, pl2_turn_count, pl2_bullet_spr_horiz, pl2_bullet_spr_vert)
       end
+    end
+
+    if (is_single_player) then
+      pl2_speed = single_player()
     end
 
     move_bullets ()
@@ -299,10 +307,6 @@ function _update()
       move_missiles()
     end
     
-    -- move bullets and bombs before moving single player so ai can avoid them
-    if (is_single_player) then
-      pl2_speed = single_player()
-    end
 
     move_player (pl1, pl1_flame, pl1_flame_spr,pl1_speed, pl1_n, pl1_ne, pl1_e, pl1_se, pl1_s, pl1_sw, pl1_w, pl1_nw)
     move_player (pl2, pl2_flame, pl2_flame_spr,pl2_speed, pl2_n, pl2_ne, pl2_e, pl2_se, pl2_s, pl2_sw, pl2_w, pl2_nw)
@@ -328,12 +332,12 @@ function check_boundaries (actor)
 end
 
 function is_ordanance(actor)
-  return actor.spr == missle_spr or actor.spr == laser_spr or actor.spr == bullet_spr_horiz or actor.spr == bullet_spr_vert or actor.spr == mortar_spr or actor.spr == explosion_spr or is_exploding_spr(actor.spr) or actor.spr == bomb_ww1_spr or actor.spr == bomb_ww2_spr
+  return actor.spr == missle_spr or actor.spr == laser_spr or actor.spr == mortar_spr or actor.spr == explosion_spr or is_exploding_spr(actor.spr) or actor.spr == bomb_ww1_spr or actor.spr == bomb_ww2_spr
 end
 
 function check_collision(pl, flame_spr, flame)
   for actor in all(actors) do
-		if (is_ordanance(actor)) then
+		if (is_ordanance(actor) or is_bullet(actor)) then
       if (actor.x >  pl.x -.7  
         and actor.x < pl.x +.7  
         and actor.y > pl.y - .7  
@@ -351,7 +355,7 @@ function check_collision(pl, flame_spr, flame)
         if (not is_crashing) then
           pl.damage = pl.damage + 1
           switch(pl) 	
-          if (pl.damage == battle_over_damage or actor.spr == missle_spr or actor.spr == laser_spr or actor.spr == explosion_spr or is_exploding_spr(actor.spr)) then
+          if (pl.damage == battle_over_damage or actor.spr == explosion_spr or is_exploding_spr(actor.spr)) then
             pl.damage = battle_over_damage
             is_crashing = true;
             pl.spr = flame_spr
@@ -583,9 +587,13 @@ function switch_back(pl)
   end
 end
 
+function is_bullet (actor)
+  return actor.spr == pl1_bullet_spr_vert or actor.spr == pl1_bullet_spr_horiz or actor.spr == pl2_bullet_spr_vert or actor.spr == pl2_bullet_spr_horiz
+end
+
 function move_bullets()
 	for actor in all(actors) do
-		if (actor.spr == bullet_spr_horiz or actor.spr == bullet_spr_vert) then
+		if (is_bullet(actor)) then
 			if (actor.direction == "n") then
 			  actor.y = actor.y - bullet_speed 						
 			end
@@ -787,7 +795,7 @@ function move_missiles()
   end
 end
 
-function control_players(pl, pl_flame_spr, pl_index, pl_turn_count)
+function control_players(pl, pl_flame_spr, pl_index, pl_turn_count, bullet_spr_horiz, bullet_spr_vert)
   -- left
   if (btn(0,pl_index) and pl.x > min_x and pl.turn_count > 10 and pl.spr != pl_flame_spr ) then 
     pl.is_pressed = true
@@ -849,7 +857,7 @@ function control_players(pl, pl_flame_spr, pl_index, pl_turn_count)
   --bullet  
 	elseif (btn(4,pl_index) and not pl.is_pressed and pl.spr != pl_flame_spr) then
 		pl.is_pressed = true
-    fire_bullet(pl)
+    fire_bullet(pl, bullet_spr_horiz, bullet_spr_vert)
   end	
 
   if (pl.turn_count <= 10) then
@@ -869,7 +877,7 @@ function control_players(pl, pl_flame_spr, pl_index, pl_turn_count)
   end
 end
 
-function fire_bullet (pl)
+function fire_bullet (pl, bullet_spr_horiz, bullet_spr_vert)
   if (pl.direction == "nw") then
     make_actor(pl.x-.6,pl.y-.6,bullet_spr_horiz,"nw") 
   elseif (pl.direction == "sw") then
@@ -943,45 +951,81 @@ end
 
 
 function is_in_range()
-  return false
+  return (flr(rnd(5)) == 0)
 end
+
 
 function is_ordanance_coordinates (x, y)
   for actor in all(actors) do
-    if (actor.x >  x -.7  
-      and actor.x < x +.7  
-      and actor.y > y - .7  
-      and actor.y <  y +.7) then
+    if ((is_ordanance (actor) or actor.spr == pl1_bullet_spr_vert or actor.spr == pl1_bullet_spr_horiz)
+      and actor.x > x - 5 
+      and actor.x < x + 5
+      and actor.y > y - 5
+      and actor.y <  y + 5) then
       return true
     end
   end
+  return false
 end
 
-function is_ordanance_location (direction) 
+function is_ordanance_direction (direction) 
   if (direction == "n") then
-    if (is_ordanance_coordinates (pl2.x, pl2.y + pl2_speed)) then 
-      return "n"
+    if (is_ordanance_coordinates (pl2.x, pl2.y - pl2_speed)) then 
+      return true
     end
   elseif (direction == "ne") then
-    if (is_ordanance_coordinates (pl2.x + pl2.speed, pl2.y + pl2_speed)) then
-      return "ne"
+    if (is_ordanance_coordinates (pl2.x + pl2_speed, pl2.y - pl2_speed)) then
+      return true
+    end
+  elseif (direction == "e") then
+    if (is_ordanance_coordinates (pl2.x + pl2_speed, pl2.y)) then
+      return true
+    end
+  elseif (direction == "se") then
+    if (is_ordanance_coordinates (pl2.x + pl2_speed, pl2.y + pl2_speed)) then
+      return true
+    end
+  elseif (direction == "s") then
+    if (is_ordanance_coordinates (pl2.x, pl2.y + pl2_speed)) then
+      return true
+    end
+  elseif (direction == "sw") then
+    if (is_ordanance_coordinates (pl2.x - pl2_speed, pl2.y + pl2_speed)) then
+      return true
+    end
+  elseif (direction == "w") then
+    if (is_ordanance_coordinates (pl2.x - pl2_speed, pl2.y)) then
+      return true
+    end
+  elseif (direction == "nw") then
+    if (is_ordanance_coordinates (pl2.x - pl2_speed, pl2.y - pl2_speed)) then
+      return true
     end
   end
+  return false
 end
 
 
 function find_optimal_direction(possible_direction1, possible_direction2, possible_direction3)
-  if (not is_ordanance_location (possible_direction2)) then
+  if (not is_ordanance_direction (possible_direction2)) then
     return possible_direction2
-  elseif (not is_ordanance (possible_direction1)) then
-    return possible_direction1
+  elseif (flr(rnd(2)) == 0) then
+    if (not is_ordanance_direction (possible_direction1)) then
+      return possible_direction1
+    else
+      return possible_direction3
+    end
   else
-    return possible_direction3
+    if (not is_ordanance_direction (possible_direction3)) then
+      return possible_direction3
+    else
+      return possible_direction1
+    end
   end
 end
 
 function single_player()
-
+  local is_turning = false
   if (not is_crashing and pl2.turn_count > 10) then
     pl2.turn_count = 0
     if (pl2.direction == "n") then
@@ -1027,12 +1071,14 @@ function single_player()
      
   --make pl2 fire
   if (not is_crashing and is_turning == false and pl2.spr and is_in_range()) then
-    fire_bullet(pl2)	
+    fire_bullet(pl2, pl2_bullet_spr_horiz, pl2_bullet_spr_vert)	
   end
 
   if (pl2.turn_count <= 10) then
     pl2.turn_count = pl2.turn_count + 1
   end
+
+  return speed
 end
 
 
@@ -1071,17 +1117,17 @@ __gfx__
 0955550500500000cc777777777ccccc000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0550090000000000ccccc7777ccccccc000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00088800085558000085580000833800000a009a0900000000000000000000000055500000055000000330000000000000550000005500000000000000000000
-8083338000855588085588880833888800900a890080809000005000000333000005550000550000003300000000000005550000055500000000000000000000
+8083338000855588085588880833888800900a890080809000005000000333000005550000550000003300000000000005550000055500000000500000000000
 38833800088855550855866508338663008909809809890000000000300330000000555500550665003306630000000005750000057500000000000000000000
 33836688855555558085565580833633000809899808090000000000330366000555555500055655000336330000000007775400077754000000000000000000
 33333333855655855855555838333338009998980088889000000000333333330556550550555550303333300000000005750000057500000000000000000000
 83333338858655885555558033333380080988898998a90000000000033333300506550055555500333333005000000005550000055500000000000000000000
-08883380080855805588558033883380909890088880009000005000000033000000550055005500330033005500000005550000055500000000000000000000
+08883380080855805588558033883380909890088880009000005000000033000000550055005500330033005500000005550000055500000000500000000000
 00083338000855808808555888083338098999888888890800000000000033300000550000005550000033305555555555555550555555500000000000000000
 00083808000888000085580000833800089089999899988000000000000030000000000000055000000330000555555555555555555555550000000000000000
 080833838085558088885580888833809008898888889a0800000000000033030005550000005500000033000000000005550000055500000000000000000000
 8386333358855800566855803668338009898099889989a000000000030633335005500056605500366033000000000005550000055500000000000000000000
-83363333558566885565580833633808089999889999890005000050033633335505660055655000336330000000000005750000057504000000000000000000
+83363333558566885565580833633808089999889999890005000050033633335505660055655000336330000000000005750000057504000500005000000000
 8333338855555555855555858333338300089089890800a000000000033333005555555505555505033333030000000007775400077754000000000000000000
 08883380855555550855555508333333080099808909000000000000000033000555555500555555003333330000000005750000057504000000000000000000
 0083338008885588085588550833883300008080a890000000000000000333000000550000550055003300330000000005550000055500000000000000000000
@@ -1129,7 +1175,7 @@ __gfx__
 05000050050004000300003003000500000000000000000000000000000000000000000000000000000000000000000005000050050004000300003003000500
 50500055505000403030003330300050000000000000000000000000000000000000000000000000000000000000000058500055585000403830003338300050
 05050500050505040303030003030305000000000000000000000000000050500000000000000000000000000000000005850500058505040383030003830305
-00505000005050000030300000303000000000000000000000000000000005000000000000000000000000000000000000585000005850000038300000383000
+00505000005050000030300000303000000050000000000000000000000005000000000000000000000000000000000000585000005850000038300000383000
 00050500000505000003030000030300000000000000000000000000000055500000000000000000000000000000000000058500000585000003830000038300
 40505050005050505030303000303030000000000000000000000000000055500000000000000000000000000000000040505850005058505030383000303830
 04000505550005050500030333000303000000000000000000000000000005000000000000000000000000000000000004000585550005850500038333000383
@@ -1153,18 +1199,18 @@ __gfx__
 00050500000050000003030000003000080505080008580008030308000838000005000000000000000000000000000000000000000000000000000000000000
 05005005000060000300300300006000058050850008680003803083000868000005000000000000000000000000000000000000000000000000000000000000
 05505055000565000330303300036300055858550085658003383833008363800055500000000000000000000000000000000000000000000000000000000000
-05555555005555500333333300333330055555550855555803333333083333380005000000000000000000000000000000000000000000000000000000000000
+05555555005555500333333300333330055555550855555803333333083333380005000005000050000000000000000000000000000000000000000000000000
 00555550055555550033333003333333085555580555555508333338033333330005000000000000000000000000000000000000000000000000000000000000
 00056500055050550003630003303033008565800558585500836380033838330058500000000000000000000000000000000000000000000000000000000000
 00006000050050050000600003003003000868000580508500086800038030830598950000000000000000000000000000000000000000000000000000000000
 00005000000505000000300000030300000858000805050800083800080303080509050000000000000000000000000000000000000000000000000000000000
 005500000000000000330000000000000855800000000000083380000000000000000000000000000000000000aaaa0000000000000000000000000000000000
-005505000000005000330300000000300855850088888850083383008888883000000000000000000000000000aaaa0000000000000000000000000000000000
+005505000000005000330300000000300855850088888850083383008888883000000000000050000000000000aaaa0000000000000000000000000000000000
 005505505555560000330330333336000855855055555680083383303333368000000000000000000000000000aaaa0000000000000000000000000000000000
 005550005555550000333000333333000855588855555580083338883333338000000000000000000000000000aaaa0000000000000000000000000000000000
 005555550005550000333333000333000855555588855580083333338883338000000000000000000000000000aaaa0000000000000000000000000000000000
 006555550550550000633333033033000865555505585580086333330338338000000000000000000000000000aaaa0000000000000000000000000000000000
-050000000050550003000000003033000588888800585580038888880038338000000000000000000000000000aaaa0000000000000000000000000000000000
+050000000050550003000000003033000588888800585580038888880038338000000000000050000000000000aaaa0000000000000000000000000000000000
 000000000000550000000000000033000000000000085580000000000008338000000000000000000000000000aaaa0000000000000000000000000000000000
 __gff__
 0000000000002000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000
