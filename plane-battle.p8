@@ -968,105 +968,85 @@ function is_ordanance_coordinates (x, y)
   return false
 end
 
-function is_ordanance_direction (direction) 
-  local lookahead = 2;
-  if (direction == "n") then
-    if (is_ordanance_coordinates (pl2.x, pl2.y - lookahead * pl2_speed)) then 
-      return true
-    end
-  elseif (direction == "ne") then
-    if (is_ordanance_coordinates (pl2.x + lookahead * pl2_speed, pl2.y - lookahead * pl2_speed)) then
-      return true
-    end
-  elseif (direction == "e") then
-    if (is_ordanance_coordinates (pl2.x + lookahead * pl2_speed, pl2.y)) then
-      return true
-    end
-  elseif (direction == "se") then
-    if (is_ordanance_coordinates (pl2.x + lookahead * pl2_speed, pl2.y + lookahead * pl2_speed)) then
-      return true
-    end
-  elseif (direction == "s") then
-    if (is_ordanance_coordinates (pl2.x, pl2.y + lookahead * pl2_speed)) then
-      return true
-    end
-  elseif (direction == "sw") then
-    if (is_ordanance_coordinates (pl2.x - lookahead * pl2_speed, pl2.y + lookahead * pl2_speed)) then
-      return true
-    end
-  elseif (direction == "w") then
-    if (is_ordanance_coordinates (pl2.x - lookahead * pl2_speed, pl2.y)) then
-      return true
-    end
-  elseif (direction == "nw") then
-    if (is_ordanance_coordinates (pl2.x - lookahead * pl2_speed, pl2.y - lookahead * pl2_speed)) then
-      return true
-    end
-  end
-  return false
+function make_coordinates (x, y) 
+  coordinates = {}
+  coordinates.x = x 
+  coordinates.y = y
+  return coordinates
 end
 
-
-function find_optimal_direction(possible_direction1, possible_direction2, possible_direction3)
-  if (not is_ordanance_direction (possible_direction2)) then
-    return possible_direction2
-  elseif (flr(rnd(2)) == 0) then
-    if (not is_ordanance_direction (possible_direction1)) then
-      return possible_direction1
-    else
-      return possible_direction3
-    end
-  else
-    if (not is_ordanance_direction (possible_direction3)) then
-      return possible_direction3
-    else
-      return possible_direction1
-    end
+function find_next_coordinates (actor, lookahead) 
+  if (actor.direction == "n") then
+    return make_coordinates(actor.x, actor.y - lookahead * actor.speed)
+  elseif (actor.direction == "ne") then
+    return make_coordinates(actor.x + lookahead * actor.speed, actor.y - lookahead * actor.speed)
+  elseif (actor.direction == "e") then
+    return make_coordinates(actor.x + lookahead * actor.speed, actor.y);
+  elseif (direction == "se") then
+    return make_coordinates(actor.x + lookahead * actor.speed, actor.y + lookahead * actor.speed)
+  elseif make_coordinates(direction == "s") then
+    return make_coordinates(actor.x, actor.y + lookahead * actor.speed)
+  elseif (direction == "sw") then
+    return make_coordinates(actor.x - lookahead * actor.speed, actor.y + lookahead * actor.speed)
+  elseif (direction == "w") then
+    return make_coordinates(actor.x - lookahead * actor.speed, actor.y)
+  elseif (direction == "nw") then
+    return make_coordinates(actor.x - lookahead * actor.speed, actor.y - lookahead * actor.speed)
   end
+end
+
+function find_possible_directions (actor)
+  if (actor.direction == "n") then
+    possible_direction1 = "n"
+    possible_direction2 = "nw"
+    possible_direction3 = "ne"
+  elseif (actor.direction == "ne") then
+    possible_direction1 = "ne"
+    possible_direction2 = "n"
+    possible_direction3 = "e"
+  elseif (actor.direction == "e") then
+    possible_direction1 = "e"
+    possible_direction2 = "ne"
+    possible_direction3 = "se"
+  elseif (actor.direction == "se") then
+    possible_direction1 = "se"
+    possible_direction2 = "e"
+    possible_direction3 = "s"
+  elseif (actor.direction == "s") then
+    possible_direction1 = "s"
+    possible_direction2 = "se"
+    possible_direction3 = "sw"
+  elseif (actor.direction == "sw") then
+    possible_direction1 = "sw"
+    possible_direction2 = "s"
+    possible_direction3 = "w"
+  elseif (actor.direction == "w") then
+    possible_direction1 = "w"
+    possible_direction2 = "sw"
+    possible_direction3 = "nw"
+  elseif (actor.direction == "nw") then
+    possible_direction1 = "nw"
+    possible_direction2 = "w"
+    possible_direction3 = "n"
+  end
+  possible_directions = {}
+  add(possible_directions, possible_direction1)
+  add(possible_directions, possible_direction2)
+  add(possible_directions, possible_direction3)
+end
+
+function find_optimal_direction(actor)
+  return ("e")
 end
 
 function single_player()
   local is_turning = false
   if (not is_crashing and pl2.turn_count > 10) then
     pl2.turn_count = 0
-    if (pl2.direction == "n") then
-      possible_direction1 = "nw"
-      possible_direction2 = "n"
-      possible_direction3 = "ne"
-    elseif (pl2.direction == "ne") then
-      possible_direction1 = "n"
-      possible_direction2 = "ne"
-      possible_direction3 = "e"
-    elseif (pl2.direction == "e") then
-      possible_direction1 = "ne"
-      possible_direction2 = "e"
-      possible_direction3 = "se"
-    elseif (pl2.direction == "se") then
-      possible_direction1 = "e"
-      possible_direction2 = "se"
-      possible_direction3 = "s"
-    elseif (pl2.direction == "s") then
-      possible_direction1 = "se"
-      possible_direction2 = "s"
-      possible_direction3 = "sw"
-    elseif (pl2.direction == "sw") then
-      possible_direction1 = "s"
-      possible_direction2 = "sw"
-      possible_direction3 = "w"
-    elseif (pl2.direction == "w") then
-      possible_direction1 = "sw"
-      possible_direction2 = "w"
-      possible_direction3 = "nw"
-    elseif (pl2.direction == "nw") then
-      possible_direction1 = "w"
-      possible_direction2 = "nw"
-      possible_direction3 = "n"
-    end
-
-    local optimal_direction = find_optimal_direction(possible_direction1, possible_direction2, possible_direction3)
+    local optimal_direction = find_optimal_direction()
     if (optimal_direction != pl2.direction) then
       is_turning = true
-      pl2.direction = optimal_direction
+      pl2.direction = optimal_direction(pl2)
     end
   end  
      
