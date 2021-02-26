@@ -331,13 +331,13 @@ function check_boundaries (actor)
   end  
 end
 
-function is_ordanance(actor)
+function is_ordnance(actor)
   return actor.spr == missle_spr or actor.spr == laser_spr or actor.spr == mortar_spr or actor.spr == explosion_spr or is_exploding_spr(actor.spr) or actor.spr == bomb_ww1_spr or actor.spr == bomb_ww2_spr
 end
 
 function check_collision(pl, flame_spr, flame)
   for actor in all(actors) do
-		if (is_ordanance(actor) or is_bullet(actor)) then
+		if (is_ordnance(actor) or is_bullet(actor)) then
       if (actor.x >  pl.x -.7  
         and actor.x < pl.x +.7  
         and actor.y > pl.y - .7  
@@ -631,14 +631,14 @@ function move_bullets()
   end
 end
 
-function move_ordanance(actor, ordanance_spr,ordanance_speed)
+function move_ordnance(actor, ordnance_spr,ordnance_speed)
   
-    if (actor.spr == ordanance_spr) then
+    if (actor.spr == ordnance_spr) then
       if ((actor.direction == "n" and actor.y <= actor.explosion_y) or (actor.direction == "s" and actor.y >= actor.explosion_y)) then
         del(actors,actor)
         make_actor(actor.x,actor.y, explosion_spr)
       end
-      actor.y = actor.y + ordanance_speed
+      actor.y = actor.y + ordnance_speed
     elseif (actor.spr == explosion_spr) then
       actor.explosion_counter = actor.explosion_counter + 1 
       if (actor.explosion_counter == 10) then
@@ -698,7 +698,7 @@ function move_bombs(bomb_spr)
         make_actor(actor.x,actor.y,bomb_spr,"s",  nil, nil, rnd(max_y - 4)+ 4)
       end 
     end
-    move_ordanance (actor,bomb_spr,speed)
+    move_ordnance (actor,bomb_spr,speed)
   end
 end
 
@@ -777,7 +777,7 @@ function move_mortars()
     make_actor(rnd(max_x), max_y + 1, mortar_spr, "n",speed, 0,rnd(max_y))
   end
   for actor in all(actors) do
-    move_ordanance (actor,mortar_spr,-speed)
+    move_ordnance (actor,mortar_spr,-speed)
   end
 end
 
@@ -955,9 +955,9 @@ function is_in_range()
 end
 
 
-function is_ordanance_coordinates (x, y)
+function is_ordenance_coordinates (x, y)
   for actor in all(actors) do
-    if ((is_ordanance (actor) or actor.spr == pl1_bullet_spr_vert or actor.spr == pl1_bullet_spr_horiz)
+    if ((is_ordnance (actor) or actor.spr == pl1_bullet_spr_vert or actor.spr == pl1_bullet_spr_horiz)
       and actor.x > x - .7 
       and actor.x < x + .7
       and actor.y > y - .7
@@ -966,6 +966,12 @@ function is_ordanance_coordinates (x, y)
     end
   end
   return false
+end
+
+function move_actor (actor) 
+  local coordinates = find_next_coordinates(actor, 1)
+  actor.x = coordinates.x
+  actor.y = coordinates.y
 end
 
 function make_coordinates (x, y) 
