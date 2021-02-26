@@ -958,10 +958,10 @@ end
 function is_ordanance_coordinates (x, y)
   for actor in all(actors) do
     if ((is_ordanance (actor) or actor.spr == pl1_bullet_spr_vert or actor.spr == pl1_bullet_spr_horiz)
-      and actor.x > x - 5 
-      and actor.x < x + 5
-      and actor.y > y - 5
-      and actor.y <  y + 5) then
+      and actor.x > x - .7 
+      and actor.x < x + .7
+      and actor.y > y - .7
+      and actor.y <  y + .7) then
       return true
     end
   end
@@ -969,36 +969,37 @@ function is_ordanance_coordinates (x, y)
 end
 
 function is_ordanance_direction (direction) 
+  local lookahead = 2;
   if (direction == "n") then
-    if (is_ordanance_coordinates (pl2.x, pl2.y - pl2_speed)) then 
+    if (is_ordanance_coordinates (pl2.x, pl2.y - lookahead * pl2_speed)) then 
       return true
     end
   elseif (direction == "ne") then
-    if (is_ordanance_coordinates (pl2.x + pl2_speed, pl2.y - pl2_speed)) then
+    if (is_ordanance_coordinates (pl2.x + lookahead * pl2_speed, pl2.y - lookahead * pl2_speed)) then
       return true
     end
   elseif (direction == "e") then
-    if (is_ordanance_coordinates (pl2.x + pl2_speed, pl2.y)) then
+    if (is_ordanance_coordinates (pl2.x + lookahead * pl2_speed, pl2.y)) then
       return true
     end
   elseif (direction == "se") then
-    if (is_ordanance_coordinates (pl2.x + pl2_speed, pl2.y + pl2_speed)) then
+    if (is_ordanance_coordinates (pl2.x + lookahead * pl2_speed, pl2.y + lookahead * pl2_speed)) then
       return true
     end
   elseif (direction == "s") then
-    if (is_ordanance_coordinates (pl2.x, pl2.y + pl2_speed)) then
+    if (is_ordanance_coordinates (pl2.x, pl2.y + lookahead * pl2_speed)) then
       return true
     end
   elseif (direction == "sw") then
-    if (is_ordanance_coordinates (pl2.x - pl2_speed, pl2.y + pl2_speed)) then
+    if (is_ordanance_coordinates (pl2.x - lookahead * pl2_speed, pl2.y + lookahead * pl2_speed)) then
       return true
     end
   elseif (direction == "w") then
-    if (is_ordanance_coordinates (pl2.x - pl2_speed, pl2.y)) then
+    if (is_ordanance_coordinates (pl2.x - lookahead * pl2_speed, pl2.y)) then
       return true
     end
   elseif (direction == "nw") then
-    if (is_ordanance_coordinates (pl2.x - pl2_speed, pl2.y - pl2_speed)) then
+    if (is_ordanance_coordinates (pl2.x - lookahead * pl2_speed, pl2.y - lookahead * pl2_speed)) then
       return true
     end
   end
