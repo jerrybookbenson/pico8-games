@@ -1041,7 +1041,7 @@ function find_possible_directions (actor)
   add(possible_directions, possible_direction3)
 end
 
-function copyActor (actor) 
+function copy_actor (actor) 
   local a = {}
   a.direction = actor.direction
   a.x = actor.x 
@@ -1051,6 +1051,7 @@ function copyActor (actor)
 end
 
 function find_optimal_direction(actor)
+  local actor_copy = copy_actor (actor)
   return ("e")
 end
 
@@ -1058,10 +1059,10 @@ function single_player()
   local is_turning = false
   if (not is_crashing and pl2.turn_count > 10) then
     pl2.turn_count = 0
-    local optimal_direction = find_optimal_direction()
+    local optimal_direction = find_optimal_direction(pl2)
     if (optimal_direction != pl2.direction) then
       is_turning = true
-      pl2.direction = optimal_direction(pl2)
+      pl2.direction = optimal_direction
     end
   end  
      
