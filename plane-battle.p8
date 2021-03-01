@@ -1041,6 +1041,15 @@ function find_possible_directions (actor)
   add(possible_directions, possible_direction3)
 end
 
+function copyActor (actor) 
+  local a = {}
+  a.direction = actor.direction
+  a.x = actor.x 
+  a.y = actor.y 
+  a.speed  = actor.speed 
+  return a
+end
+
 function find_optimal_direction(actor)
   return ("e")
 end
