@@ -25,7 +25,9 @@ function setup()
 
   speed = .125
   other_speed = .0625
-  
+  bullet_speed = speed * 3 
+  bomb_speed = speed
+
   middle = 8 
   min_x = .5
   max_x = 15.5
@@ -75,10 +77,12 @@ function setup()
     pl2_w_h = 141
     pl2_nw_h = 157
 
+    zepplin_speed = other_speed
     zepplin_left_spr = 166 
     zepplin_middle_spr = 167
     zepplin_right_spr = 168
 
+    balloon_speed = other_speed
     balloon_nw_spr = 137
     balloon_ne_spr = 138
     balloon_sw_spr = 153
@@ -130,6 +134,7 @@ function setup()
     pl2_w_h = 113
     pl2_nw_h = 82
 
+    bomber_speed = other_speed
     allied_bomber_ne = 108
     allied_bomber_se = 124
     allied_bomber_nw_1 = 107
@@ -150,6 +155,7 @@ function setup()
     pl2_bullet_spr_horiz = 78 
     pl2_bullet_spr_vert = 94
 
+    mortar_speed = speed
     mortar_spr = 116
 
     bomb_ww2_spr = 118
@@ -200,11 +206,15 @@ function setup()
 
     ufo_spr = 205
     ufo_speed = other_speed
-    make_actor(min_x, min_y + .3,ufo_spr, "e")
-    make_actor(min_x + 1,min_y + .3,ufo_spr + 1, "e")
-    make_actor(min_x + 2,min_y + .3,ufo_spr + 2, "e")
+    make_actor(min_x, min_y + .3,ufo_spr, "e", ufo_speed)
+    make_actor(min_x + 1,min_y + .3,ufo_spr + 1, "e", ufo_speed)
+    make_actor(min_x + 2,min_y + .3,ufo_spr + 2, "e", ufo_speed)
+    
+    laser_speed = bullet_speed
     laser_counter = max_y
     laser_spr = 251
+
+    missle_speed = bullet_speed
     missle_spr = 232
   end
   
@@ -233,29 +243,28 @@ function setup()
       
   pl1_speed = speed
   pl2_speed = speed
+  pl_speed = speed
 
   pl1_rubble1 = {}
   pl1_rubble2 = {}
   pl2_rubble1 = {}
   pl2_rubble2 = {}
   
-	bullet_speed = speed * 3 
-
+	
 	-- don't allow user to hold down fire button
   pl1_is_pressed = false
   pl2_is_pressed = false
-  pl1 = make_actor(max_x - 1,7, pl1_w, "w",  0, -speed)
-  pl2 = make_actor(min_x + 1,7, pl2_e, "e",  0,  speed)
+  pl1 = make_actor(max_x - 1,7, pl1_w, "w",  pl_speed)
+  pl2 = make_actor(min_x + 1,7, pl2_e, "e",  pl_speed)
   pl1_flame = nil
   pl2_flame = nil
-  
   
   turn_max = 0
   turn_counter = 0
 end
   
 
-function make_actor(x, y, spr, d,  speed_y , speed_x,explosion_y )
+function make_actor(x, y, spr, d, speed, explosion_y)
   a={}
   a.is_pressed = false
   a.damage = 0
@@ -264,8 +273,7 @@ function make_actor(x, y, spr, d,  speed_y , speed_x,explosion_y )
   a.frame = 0
   a.spr = spr
   a.direction = d
-  a.speed_y = speed_y
-  a.speed_x = speed_x
+  a.speed = speed
   a.bullet_counter = 0
   a.turn_count = 0
   a.explosion_y = explosion_y
@@ -360,9 +368,9 @@ function check_collision(pl, flame_spr, flame)
             is_crashing = true;
             pl.spr = flame_spr
             if (pl == pl1) then
-              pl1_flame = make_actor(pl.x ,pl.y - 1, flame_tail_spr1)
+              pl1_flame = make_actor(pl.x ,pl.y - 1, flame_tail_spr1, "s", speed)
             else 
-              pl2_flame = make_actor(pl.x ,pl.y - 1, flame_tail_spr1)
+              pl2_flame = make_actor(pl.x ,pl.y - 1, flame_tail_spr1, "s", speed)
             end
           end
         end		   
@@ -383,7 +391,7 @@ function _draw()
   if (not get_ready) then
     foreach(actors,draw_actor)
   end
-  if (game_over and not get_ready) then
+  if (game_over and not get_ready and not is_demo) then
     pl1_battles = 0
     pl2_battles = 0
     game_over_counter = game_over_counter + 1
@@ -425,8 +433,6 @@ function _draw()
     print (" up:single player", 12, 30, 5) 
     print (" down:multiplayer player", 12, 40, 5) 
   end
-
-
 
   if (battle_over and not get_ready) then
     battle_over_counter = battle_over_counter + 1
@@ -472,14 +478,13 @@ function _draw()
     if (not game_over) then
       battle = battle + 1
       battle_over = false
-      is_demo = false
       setup()
     end
   end
 
-
-
   if ((is_demo or game_over) and not get_ready) then
+    print (" up:single player", 12, 30, 5) 
+    print (" down:multiplayer player", 12, 40, 5) 
     if (btn (3) or btn (3,1)) then 
       is_single_player = false
       battle = 1
@@ -594,34 +599,7 @@ end
 function move_bullets()
 	for actor in all(actors) do
 		if (is_bullet(actor)) then
-			if (actor.direction == "n") then
-			  actor.y = actor.y - bullet_speed 						
-			end
-			if (actor.direction == "s") then
-				actor.y = actor.y + bullet_speed 						
-			end
-			if (actor.direction == "e") then
-				actor.x = actor.x + bullet_speed 						
-			end
-			if (actor.direction == "w") then
-				actor.x = actor.x - bullet_speed 						
-      end
-      if (actor.direction == "nw") then
-        actor.y = actor.y - bullet_speed 	
-        actor.x = actor.x - bullet_speed					
-			end
-			if (actor.direction == "sw") then
-        actor.y = actor.y + bullet_speed 	
-        actor.x = actor.x - bullet_speed					
-			end
-      if (actor.direction == "ne") then
-        actor.y = actor.y - bullet_speed 
-				actor.x = actor.x + bullet_speed 						
-			end
-      if (actor.direction == "se") then
-        actor.y = actor.y + bullet_speed 
-				actor.x = actor.x + bullet_speed 						
-      end
+			move_actor (actor)
 
       actor.bullet_counter += 1 
       if (actor.bullet_counter == 30) then
@@ -631,14 +609,14 @@ function move_bullets()
   end
 end
 
-function move_ordnance(actor, ordnance_spr,ordnance_speed)
-  
+function move_ordnance(actor, ordnance_spr)
     if (actor.spr == ordnance_spr) then
       if ((actor.direction == "n" and actor.y <= actor.explosion_y) or (actor.direction == "s" and actor.y >= actor.explosion_y)) then
         del(actors,actor)
         make_actor(actor.x,actor.y, explosion_spr)
+      else
+        move_actor(actor)
       end
-      actor.y = actor.y + ordnance_speed
     elseif (actor.spr == explosion_spr) then
       actor.explosion_counter = actor.explosion_counter + 1 
       if (actor.explosion_counter == 10) then
@@ -663,27 +641,27 @@ end
 
 function move_balloons()
   if(flr(rnd(300)) == 1) then
-    make_actor(max_x + 1,min_y + .3, balloon_ne_spr)
-    make_actor(max_x,min_y + .3, balloon_nw_spr)
-    make_actor(max_x + 1,min_y + 1.3, balloon_se_spr)
-    make_actor(max_x, min_y + 1.3, balloon_sw_spr)
+    make_actor(max_x + 1,min_y + .3, balloon_ne_spr,"w", balloon_speed)
+    make_actor(max_x,min_y + .3, balloon_nw_spr, "w", balloon_speed)
+    make_actor(max_x + 1,min_y + 1.3, balloon_se_spr, "w", balloon_speed)
+    make_actor(max_x, min_y + 1.3, balloon_sw_spr, "w", balloon_speed)
   end
 
   if(flr(rnd(300)) == 1) then
-    make_actor(min_x - 2,min_y + .3, zepplin_left_spr)
-    make_actor(min_x - 1,min_y + .3, zepplin_middle_spr)
-    make_actor(min_x,min_y + .3, zepplin_right_spr)
+    make_actor(min_x - 2,min_y + .3, zepplin_left_spr, "e", zepplin_speed)
+    make_actor(min_x - 1,min_y + .3, zepplin_middle_spr, "e", zepplin_speed)
+    make_actor(min_x,min_y + .3, zepplin_right_spr, "e", zepplin_speed)
   end
   
   for actor in all(actors) do
     if (actor.spr == balloon_nw_spr or actor.spr == balloon_ne_spr or actor.spr == balloon_sw_spr or actor.spr == balloon_se_spr) then
-      actor.x = actor.x - other_speed
+      move_actor (actor)
       if(actor.x <= min_x - 1) then
         del(actors,actor)
       end
     end
     if (actor.spr == zepplin_left_spr or actor.spr == zepplin_middle_spr or actor.spr == zepplin_right_spr) then
-      actor.x = actor.x + other_speed
+      move_actor (actor)
       if(actor.x >= max_x + 1) then
         del(actors,actor)
       end
@@ -695,38 +673,38 @@ function move_bombs(bomb_spr)
   for actor in all(actors) do
     if (actor.spr == zepplin_middle_spr or actor.spr == balloon_sw_spr or actor.spr == allied_bomber_se or actor.spr == german_bomber_sw) then 
       if(flr(rnd(100)) == 1) then
-        make_actor(actor.x,actor.y,bomb_spr,"s",  nil, nil, rnd(max_y - 4)+ 4)
+        make_actor(actor.x,actor.y,bomb_spr,"s", bomb_speed, rnd(max_y - 4)+ 4)
       end 
     end
-    move_ordnance (actor,bomb_spr,speed)
+    move_ordnance (actor,bomb_spr)
   end
 end
 
 function move_bombers()
   if(flr(rnd(300)) == 1) then
-    make_actor(max_x + 1,min_y + .3,allied_bomber_ne)
-    make_actor(max_x,min_y + .3, allied_bomber_nw_1)
-    make_actor(max_x + 1,min_y + 1.3,allied_bomber_se)
-    make_actor(max_x, min_y + 1.3,allied_bomber_sw_1)
+    make_actor(max_x + 1,min_y + .3,allied_bomber_ne, "w", bomber_speed)
+    make_actor(max_x,min_y + .3, allied_bomber_nw_1, "w", bomber_speed)
+    make_actor(max_x + 1,min_y + 1.3,allied_bomber_se, "w", bomber_speed)
+    make_actor(max_x, min_y + 1.3,allied_bomber_sw_1, "w", bomber_speed)
   
   end
   if(flr(rnd(300)) == 1) then
-    make_actor(min_x,min_y + .3,german_bomber_ne_1)
-    make_actor(min_x - 1,min_y + .3, german_bomber_nw)
-    make_actor(min_x,min_y + 1.3, german_bomber_se_1)
-    make_actor(min_x - 1, min_y + 1.3, german_bomber_sw)
+    make_actor(min_x,min_y + .3,german_bomber_ne_1, "e", bomber_speed)
+    make_actor(min_x - 1,min_y + .3, german_bomber_nw,"e", bomber_speed)
+    make_actor(min_x,min_y + 1.3, german_bomber_se_1, "e", bomber_speed)
+    make_actor(min_x - 1, min_y + 1.3, german_bomber_sw, "e", bomber_speed)
   end
   
   for actor in all(actors) do
     if (actor.spr == allied_bomber_ne or actor.spr == allied_bomber_nw_1 or actor.spr == allied_bomber_nw_2 or actor.spr == allied_bomber_se or actor.spr == allied_bomber_sw_1 or actor.spr == allied_bomber_sw_2) then
-      actor.x = actor.x - other_speed
+      move_actor(actor)
       if(actor.x <= min_x - 1) then
         del(actors,actor)
       end
     end
 
     if (actor.spr == german_bomber_ne_1 or actor.spr == german_bomber_ne_2 or actor.spr == german_bomber_nw or actor.spr == german_bomber_se_1 or actor.spr == german_bomber_se_2 or actor.spr == german_bomber_sw) then
-      actor.x = actor.x + other_speed
+      move_actor(actor)
       if(actor.x >= max_x + 1) then
         del(actors,actor)
       end
@@ -754,11 +732,7 @@ function move_ufo()
             actor.direction = "e"
           end
         end
-        if (actor.direction == "e") then
-          actor.x = actor.x + ufo_speed
-        else
-          actor.x = actor.x - ufo_speed
-        end
+        move_actor(actor)
       end
     end
     if (actor.spr == laser_spr and laser_counter == max_y) then
@@ -774,20 +748,20 @@ end
 
 function move_mortars()
   if (flr(rnd(100)) == 1) then
-    make_actor(rnd(max_x), max_y + 1, mortar_spr, "n",speed, 0,rnd(max_y))
+    make_actor(rnd(max_x), max_y + 1, mortar_spr, "n",mortar_speed, rnd(max_y))
   end
   for actor in all(actors) do
-    move_ordnance (actor,mortar_spr,-speed)
+    move_ordnance (actor,mortar_spr)
   end
 end
 
 function move_missiles()
   if (flr(rnd(50)) == 1) then
-    make_actor(rnd(max_x), max_y + 1, missle_spr, "n",speed, 0,rnd(max_y))
+    make_actor(rnd(max_x), max_y + 1, missle_spr, "n", missle_speed, rnd(max_y))
   end
   for actor in all(actors) do
     if (actor.spr == missle_spr) then
-      actor.y = actor.y - bullet_speed
+      move_actor(actor)
       if (actor.y < min_y) then
         del(actors, actor)
       end
@@ -879,25 +853,25 @@ end
 
 function fire_bullet (pl, bullet_spr_horiz, bullet_spr_vert)
   if (pl.direction == "nw") then
-    make_actor(pl.x-.6,pl.y-.6,bullet_spr_horiz,"nw") 
+    make_actor(pl.x-.6,pl.y-.6,bullet_spr_horiz,"nw", bullet_speed) 
   elseif (pl.direction == "sw") then
-    make_actor(pl.x-.6,pl.y+.6,bullet_spr_horiz,"sw")
+    make_actor(pl.x-.6,pl.y+.6,bullet_spr_horiz,"sw", bullet_speed)
   elseif (pl.direction == "se") then
-    make_actor(pl.x+.6,pl.y+.6,bullet_spr_horiz,"se")
+    make_actor(pl.x+.6,pl.y+.6,bullet_spr_horiz,"se", bullet_speed)
   elseif (pl.direction == "ne") then
-    make_actor(pl.x+.6,pl.y-.6,bullet_spr_horiz,"ne")
+    make_actor(pl.x+.6,pl.y-.6,bullet_spr_horiz,"ne", bullet_speed)
   elseif (pl.direction == "n") then
-    make_actor(pl.x,pl.y-.6,bullet_spr_vert,"n")
+    make_actor(pl.x,pl.y-.6,bullet_spr_vert,"n", bullet_speed)
   elseif (pl.direction == "s") then
-    make_actor(pl.x,pl.y+.6,bullet_spr_vert,"s")
+    make_actor(pl.x,pl.y+.6,bullet_spr_vert,"s", bullet_speed)
   elseif (pl.direction == "e") then
-    make_actor(pl.x+.6,pl.y,bullet_spr_horiz,"e")
+    make_actor(pl.x+.6,pl.y,bullet_spr_horiz,"e", bullet_speed)
   elseif (pl.direction == "w") then
-    make_actor(pl.x-.6,pl.y,bullet_spr_horiz,"w")
+    make_actor(pl.x-.6,pl.y,bullet_spr_horiz,"w", bullet_speed)
   end
 end
 
-function move_player(pl,  pl_flame, pl_flame_spr,pl_speed, pl_n, pl_ne, pl_e, pl_se, pl_s, pl_sw, pl_w, pl_nw)    
+function move_player(pl, pl_flame, pl_flame_spr, pl_speed, pl_n, pl_ne, pl_e, pl_se, pl_s, pl_sw, pl_w, pl_nw)    
   if (pl_flame) then
     pl.y += speed
     pl_flame.y += speed
@@ -911,51 +885,16 @@ function move_player(pl,  pl_flame, pl_flame_spr,pl_speed, pl_n, pl_ne, pl_e, pl
       battle_over_counter = 0 
     end
   else
-    if(pl.direction == "nw") then 
-      pl.spr = pl_nw
-      pl.speed_y = -pl_speed
-      pl.speed_x = -pl_speed
-    elseif(pl.direction == "w") then
-      pl.spr = pl_w 
-      pl.speed_y =  0	 
-      pl.speed_x = -pl_speed
-    elseif(pl.direction == "sw") then
-      pl.spr = pl_sw 
-      pl.speed_y =  pl_speed 	 
-      pl.speed_x = -pl_speed
-    elseif (pl.direction == "s") then
-      pl.spr = pl_s 
-      pl.speed_y =  pl_speed	 
-      pl.speed_x = 0
-    elseif (pl.direction == "se") then
-      pl.spr = pl_se
-      pl.speed_y =  pl_speed 	 
-      pl.speed_x = pl_speed
-    elseif(pl.direction == "e") then 
-      pl.spr = pl_e
-      pl.speed_y = 0 	 
-      pl.speed_x = pl_speed
-    elseif(pl.direction == "ne") then 
-      pl.spr = pl_ne
-      pl.speed_y = -pl_speed 	 
-      pl.speed_x = pl_speed
-    elseif(pl.direction == "n") then
-      pl.spr = pl_n 
-      pl.speed_y = -pl_speed	 
-      pl.speed_x = 0 
-    end 
-    pl.x = pl.x + pl.speed_x
-    pl.y = pl.y + pl.speed_y 
+    move_actor(pl)
+    update_actor_spr (pl, pl_n, pl_ne, pl_e, pl_se, pl_s, pl_sw, pl_w, pl_nw) 
   end 
 end
-
 
 function is_in_range()
   return (flr(rnd(5)) == 0)
 end
 
-
-function is_ordenance_coordinates (x, y)
+function is_ordnance_coordinates (x, y)
   for actor in all(actors) do
     if ((is_ordnance (actor) or actor.spr == pl1_bullet_spr_vert or actor.spr == pl1_bullet_spr_horiz)
       and actor.x > x - .7 
@@ -969,9 +908,13 @@ function is_ordenance_coordinates (x, y)
 end
 
 function move_actor (actor) 
-  local coordinates = find_next_coordinates(actor, 1)
+  local coordinates = find_next_coordinates(actor.direction, actor.x, actor.y, actor.speed, 1)
   actor.x = coordinates.x
   actor.y = coordinates.y
+end
+
+function update_actor_spr (actor, n_spr, ne_spr, e_spr, se_spr, s_spr, sw_spr, w_spr, nw_spr) 
+  actor.spr = find_spr (actor.direction, n_spr, ne_spr, e_spr, se_spr, s_spr, sw_spr, w_spr, nw_spr)
 end
 
 function make_coordinates (x, y) 
@@ -981,56 +924,76 @@ function make_coordinates (x, y)
   return coordinates
 end
 
-function find_next_coordinates (actor, lookahead) 
-  if (actor.direction == "n") then
-    return make_coordinates(actor.x, actor.y - lookahead * actor.speed)
-  elseif (actor.direction == "ne") then
-    return make_coordinates(actor.x + lookahead * actor.speed, actor.y - lookahead * actor.speed)
-  elseif (actor.direction == "e") then
-    return make_coordinates(actor.x + lookahead * actor.speed, actor.y);
+function find_spr (direction, n_spr, ne_spr, e_spr, se_spr, s_spr, sw_spr, w_spr, nw_spr) 
+  if (direction == "n") then
+    return n_spr
+  elseif (direction == "ne") then
+    return ne_spr
+  elseif (direction == "e") then
+    return e_spr
   elseif (direction == "se") then
-    return make_coordinates(actor.x + lookahead * actor.speed, actor.y + lookahead * actor.speed)
-  elseif make_coordinates(direction == "s") then
-    return make_coordinates(actor.x, actor.y + lookahead * actor.speed)
+    return se_spr
+  elseif (direction == "s") then
+    return s_spr
   elseif (direction == "sw") then
-    return make_coordinates(actor.x - lookahead * actor.speed, actor.y + lookahead * actor.speed)
+    return sw_spr
   elseif (direction == "w") then
-    return make_coordinates(actor.x - lookahead * actor.speed, actor.y)
+    return w_spr
   elseif (direction == "nw") then
-    return make_coordinates(actor.x - lookahead * actor.speed, actor.y - lookahead * actor.speed)
+    return nw_spr
   end
 end
 
-function find_possible_directions (actor)
-  if (actor.direction == "n") then
+function find_next_coordinates (direction, x, y, speed, lookahead) 
+  if (direction == "n") then
+    return make_coordinates(x, y - lookahead * speed)
+  elseif (direction == "ne") then
+    return make_coordinates(x + lookahead * speed, y - lookahead * speed)
+  elseif (direction == "e") then
+    return make_coordinates(x + lookahead * speed, y);
+  elseif (direction == "se") then
+    return make_coordinates(x + lookahead * speed, y + lookahead * speed)
+  elseif (direction == "s") then
+    return make_coordinates(x, y + lookahead * speed)
+  elseif (direction == "sw") then
+    return make_coordinates(x - lookahead * speed, y + lookahead * speed)
+  elseif (direction == "w") then
+    return make_coordinates(x - lookahead * speed, y)
+  elseif (direction == "nw") then
+    return make_coordinates(x - lookahead * speed, y - lookahead * speed)
+  end
+end
+
+function find_possible_directions (direction)
+  if (direction == "n") then
     possible_direction1 = "n"
     possible_direction2 = "nw"
     possible_direction3 = "ne"
-  elseif (actor.direction == "ne") then
+  elseif (direction == "ne") then
     possible_direction1 = "ne"
     possible_direction2 = "n"
     possible_direction3 = "e"
-  elseif (actor.direction == "e") then
+  elseif (direction == "e") then
     possible_direction1 = "e"
     possible_direction2 = "ne"
     possible_direction3 = "se"
-  elseif (actor.direction == "se") then
+  elseif (direction == "se") then
     possible_direction1 = "se"
     possible_direction2 = "e"
     possible_direction3 = "s"
-  elseif (actor.direction == "s") then
+  elseif (direction == "s") then
     possible_direction1 = "s"
     possible_direction2 = "se"
     possible_direction3 = "sw"
-  elseif (actor.direction == "sw") then
+  elseif (direction == "sw") then
     possible_direction1 = "sw"
     possible_direction2 = "s"
     possible_direction3 = "w"
-  elseif (actor.direction == "w") then
+  elseif (direction == "w") then
     possible_direction1 = "w"
     possible_direction2 = "sw"
     possible_direction3 = "nw"
-  elseif (actor.direction == "nw") then
+  elseif (direction == "nw") then
     possible_direction1 = "nw"
     possible_direction2 = "w"
     possible_direction3 = "n"
