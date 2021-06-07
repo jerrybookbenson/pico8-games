@@ -5,12 +5,14 @@ __lua__
 --by maximo y jerry
 
 function _init()
-  game_over = true
+ 
+  game_over = false
   actors = {} --all actors in world
+  player=make_actor  (8, 8, 121)
 end
 
-function make_actor(x, y, spr, d, speed, explosion_y)
-  a={}
+function make_actor(x, y, spr)
+  local a={}
   a.x = x
   a.y = y
   a.spr = spr
@@ -20,7 +22,13 @@ end
 
 
 function _update()
-  
+  if (btn (3) ) then
+    player.y=player.y+.1
+    
+    
+  end
+
+
 end
 
 function draw_actor(a) 
