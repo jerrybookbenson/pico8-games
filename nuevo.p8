@@ -22,6 +22,7 @@ end
 
 function _update()
  move_alien()
+ make_maze()
 end
 
 function draw_actor(a) 
@@ -39,12 +40,16 @@ end
 function move_alien()
   if (alien.x > 0.7) then
     alien.x = alien.x -.1
-  end
-  
+  end 
 end  
+function make_maze()
+  maze = 
+  {
+    {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
+    {0,0,0,0}
+  }
 
-
-
+end
 
 __gfx__
 00000005000000006666666600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
