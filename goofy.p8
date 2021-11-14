@@ -48,15 +48,21 @@ function next_level ()
     
 end
 
+function check_restart() 
+    if (btn(3,0)) then
+        _init()
+    end
+end
+
 function _draw()
     cls()
     map(0,0,0,0,16,16)
-    
-                    
+           
     if (game_over) then
         if (prize_counter == 10) then
             if (level == 1) then
                 print ("GAME OVER - YOU WON", 20, 40, 10)
+                check_restart()
             else
                 print ("LEVEL COMPLETE", 20, 40, 10)
                 between_counter = between_counter + 1
@@ -68,10 +74,7 @@ function _draw()
             end
         else 
             print ("GAME OVER - YOU LOST",20, 40, 10)
-        end
-        -- goofy()
-        if (btn(3,0)) then
-            _init()
+            check_restart()
         end
     else
         make_raindrops()
