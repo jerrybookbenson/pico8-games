@@ -9,9 +9,8 @@ function _init()
   game_over = false
   actors = {} --all actors in world
   player=make_actor  (0.4,2.5,0)
-  espada = nil
- 
-  
+  espada = {}
+  first_time = true
   alien = make_actor(6,2.3,1)
 end
 
@@ -26,19 +25,23 @@ end
 
 
 function _update()
-  if (btn (3) ) then
-    player.y=player.y+.1
-    
-    
-  end
-
-  if (btn (5) ) then
+  
+  if (btn (5)) then
     player.spr=16
-    espada=make_actor (player.x+1,player.y,17) 
-
-  else
+    if (first_time) then
+      espada=make_actor (player.x+1,player.y,17) 
+    end
+    first_time = false
+  else 
+    first_time = true
     player.spr=0
     del(actors, espada)  
+    if (btn (3) ) then
+      player.y=player.y+.1
+      
+      
+    end
+  
   end
 
   move_alien()
