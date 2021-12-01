@@ -108,26 +108,26 @@ function _update()
             make_helicopter()
             make_rainbow_wall()
             pause()
-        elseif (level == 1 and score < 1) then
+        elseif (level == 1 and score < 100) then
             move_unicorn()
-            move_helicopter()
+            move_helicopter(10)
         elseif (level == 1) then
             actors = {}
             make_unicorn()
             make_rainbow_wall()
             pause()
-        elseif (level == 2 and score < 2) then
+        elseif (level == 2 and score < 200) then
             move_unicorn()
-            move_monsters(.1)
+            move_monsters(.1, 30)
         elseif (level == 2) then
             actors = {}
             make_unicorn()
             make_helicopter()
             make_rainbow_wall()
             pause()
-        elseif (level == 3 and score < 3) then
+        elseif (level == 3 and score < 300) then
             move_unicorn()
-            move_helicopter2()
+            move_helicopter2(10)
         elseif (level ==3 ) then
             actors = {}
             make_unicorn()
@@ -135,7 +135,17 @@ function _update()
             pause()
         elseif (level == 4 and score < 400) then
             move_unicorn()
-            move_monsters(.3)
+            move_monsters(.3, 20)
+        elseif (level == 4 ) then
+            actors = {}
+            make_unicorn()
+            make_helicopter()
+            make_rainbow_wall()
+            pause()
+        elseif (level == 5 and score < 500) then
+            move_unicorn()
+            move_monsters(.05, 30)
+            move_helicopter2(20)
         else
             game_over = true
             won = true
@@ -146,14 +156,14 @@ end
 
 function pause()
     pause_counter = pause_counter + 1
-    if (pause_counter == 100) then
+    if (pause_counter == 50) then
         pause_counter = 0
         level = level + 1
     end
 end
 
-function move_monsters(speed)
-    local do_spawn=flr(rnd(30)) == 1
+function move_monsters(speed, spawn)
+    local do_spawn=flr(rnd(spawn)) == 1
     local monster_spr=flr(rnd(3)) + 179
     local monster_y=ceil(rnd(13))
 
@@ -233,7 +243,7 @@ function move_unicorn()
 
 end
 
-function move_helicopter()
+function move_helicopter(fire)
     if ((prop_counter%(prop_delay * 8)) == 0) then
         local change_direction = flr(rnd(4)) == 1
         if (change_direction or helicopter_y < 1 or helicopter_y > 12) then
@@ -250,12 +260,12 @@ function move_helicopter()
             helicopter_y = helicopter_y + .5
         end
     end
-    spin_prop()
+    spin_prop(fire)
 end
 
 
-function spin_prop() 
-    local fire_missile = flr(rnd(10)) == 1
+function spin_prop(fire) 
+    local fire_missile = flr(rnd(fire)) == 1
     
     for actor in all(actors) do
         
@@ -310,7 +320,7 @@ function spin_prop()
 end
 
 
-function move_helicopter2()
+function move_helicopter2(fire)
     if ((prop_counter%(prop_delay * 8)) == 0) then
         local change_location = flr(rnd(5)) == 1
         local change_magnitude = rnd(10) - 5
@@ -321,7 +331,7 @@ function move_helicopter2()
             end
         end
     end
-    spin_prop()
+    spin_prop(fire)
 end
 
 
@@ -389,7 +399,7 @@ function _draw()
   if (game_over) then
     check_restart()
     if (won) then
-        print ("OUR UNICORN HERO!",28, 40, 7)
+        print ("OUR UNICORN HERO!",40, 40, 7)
     else
         print ("WE AWAIT ANOTHER...",28, 40, 7)
     end
@@ -424,6 +434,8 @@ function _draw()
             print ("IT TELEPORTS",50, 40, 7)
         elseif (level == 3) then
             print ("ZOMBIE APOCOLYPSE",45, 40, 7)
+        elseif (level == 4) then
+            print ("SURPRISE",55, 40, 7)
         end
     end
 end
