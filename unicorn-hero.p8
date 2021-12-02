@@ -21,7 +21,9 @@ function _init()
     uni_jump = 2
     missile_speed = .5
     score = 0
+    saved_score = 0
     level = 0
+    level_score = 100
     pause_counter = 0
 end
 
@@ -103,53 +105,38 @@ end
 function _update()
     if (not game_over) then
         if (level == 0) then
-            actors = {}
-            make_unicorn()
-            make_helicopter()
-            make_rainbow_wall()
             pause()
-        elseif (level == 1 and score < 100) then
+            make_helicopter()
+        elseif (level == 1 and score < saved_score + level_score) then
             move_unicorn()
             move_helicopter(10)
         elseif (level == 1) then
-            actors = {}
-            make_unicorn()
-            make_rainbow_wall()
             pause()
-        elseif (level == 2 and score < 200) then
+        elseif (level == 2 and score < saved_score + level_score) then
             move_unicorn()
             move_monsters(.1, 30)
         elseif (level == 2) then
-            actors = {}
-            make_unicorn()
-            make_helicopter()
-            make_rainbow_wall()
             pause()
-        elseif (level == 3 and score < 300) then
+            make_helicopter()
+        elseif (level == 3 and score < saved_score + level_score) then
             move_unicorn()
             move_helicopter2(10)
-        elseif (level ==3 ) then
-            actors = {}
-            make_unicorn()
-            make_rainbow_wall()
+        elseif (level == 3) then
             pause()
-        elseif (level == 4 and score < 400) then
+        elseif (level == 4 and score < saved_score + level_score) then
             move_unicorn()
             move_monsters(.3, 20)
-        elseif (level == 4 ) then
-            actors = {}
-            make_unicorn()
-            make_helicopter()
-            make_rainbow_wall()
+        elseif (level == 4) then
             pause()
-        elseif (level == 5 and score < 500) then
+            make_helicopter()
+        elseif (level == 5 and score < saved_score + level_score) then
             move_unicorn()
             move_monsters(.05, 30)
             move_helicopter2(20)
-        else
+        else 
             game_over = true
             won = true
-        end 
+        end
     end
 end
 
@@ -159,7 +146,11 @@ function pause()
     if (pause_counter == 50) then
         pause_counter = 0
         level = level + 1
+        saved_score = score
     end
+    actors = {}
+    make_unicorn()
+    make_rainbow_wall()
 end
 
 function move_monsters(speed, spawn)
@@ -397,14 +388,12 @@ function _draw()
   foreach(actors,draw_actor)
   print ("SCORE: "..score.." ", 0, 120, 7)
   if (game_over) then
-    check_restart()
+    game_over_counter = game_over_counter + 1
     if (won) then
         print ("OUR UNICORN HERO!",40, 40, 7)
     else
         print ("WE AWAIT ANOTHER...",28, 40, 7)
-    end
-    game_over_counter = game_over_counter + 1
-    if (game_over_counter == 20 and not won) then   
+        
         for actor in all(actors) do
             if (actor.spr == 186) then
                 del(actors, actor)
@@ -424,6 +413,11 @@ function _draw()
         make_actor(.5,12,170)
         make_actor(.5,13,170)
     end
+    if (game_over_counter > 50) then
+        print (" up: continue", 35, 60, 7) 
+        print (" down: restart", 35, 70, 7) 
+        check_restart()
+    end
 
     elseif (pause_counter > 0) then
         if (level == 0) then
@@ -441,7 +435,12 @@ function _draw()
 end
 
 function check_restart() 
-    if (btn(5,0)) then
+    if (btn(2)) then
+        local saved_level = level
+        _init()
+        level = saved_level - 1
+        saved_score = -level_score
+    elseif (btn(3)) then
         _init()
     end
 end
