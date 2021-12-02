@@ -168,6 +168,8 @@ function move_monsters(speed, spawn)
                 score = score + 1
             elseif (hits_rainbow_wall(actor)) then
                 del (actors, actor)
+            elseif (actor.x < 0) then
+                del (actors, actor)
             else
                 actor.x = actor.x - speed
             end
